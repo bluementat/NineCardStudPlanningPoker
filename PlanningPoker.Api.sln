@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{F0E43790-E9CB-4B8F-8C1E-D9393DACABAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanningPoker.Api", "backend\PlanningPoker.Api\PlanningPoker.Api.csproj", "{31A6F486-7204-4673-8C12-CC1E191EF8AE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{EE19DF54-E7C5-4D67-ADC0-61EA6BF28CBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlanningPoker.Api.Tests", "backend\tests\PlanningPoker.Api.Tests\PlanningPoker.Api.Tests.csproj", "{34F898CC-26B3-4F02-8C39-7FBF0854BE17}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31A6F486-7204-4673-8C12-CC1E191EF8AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31A6F486-7204-4673-8C12-CC1E191EF8AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31A6F486-7204-4673-8C12-CC1E191EF8AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31A6F486-7204-4673-8C12-CC1E191EF8AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34F898CC-26B3-4F02-8C39-7FBF0854BE17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34F898CC-26B3-4F02-8C39-7FBF0854BE17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34F898CC-26B3-4F02-8C39-7FBF0854BE17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34F898CC-26B3-4F02-8C39-7FBF0854BE17}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{31A6F486-7204-4673-8C12-CC1E191EF8AE} = {F0E43790-E9CB-4B8F-8C1E-D9393DACABAF}
+		{EE19DF54-E7C5-4D67-ADC0-61EA6BF28CBF} = {F0E43790-E9CB-4B8F-8C1E-D9393DACABAF}
+		{34F898CC-26B3-4F02-8C39-7FBF0854BE17} = {EE19DF54-E7C5-4D67-ADC0-61EA6BF28CBF}
+	EndGlobalSection
+EndGlobal

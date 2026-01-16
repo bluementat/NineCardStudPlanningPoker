@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="casino-container">
-      <div class="welcome-section">
+      <div class="welcome-section" :class="{ 'compact': showCreator || joining }">
         <h1 class="main-title">9-Card Stud</h1>
         <p class="subtitle">PREMIUM PLANNING POKER</p>
       </div>
@@ -79,6 +79,11 @@ export default {
 .welcome-section {
   text-align: center;
   margin-bottom: 50px;
+  transition: margin 0.3s ease;
+}
+
+.welcome-section.compact {
+  margin-bottom: 20px;
 }
 
 .main-title {
@@ -105,7 +110,7 @@ export default {
   display: flex;
   justify-content: center;
   gap: 40px;
-  margin-top: 20px;
+  margin-top: 10px;
   flex-wrap: wrap;
 }
 
@@ -132,7 +137,7 @@ export default {
 
 .back-link {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .text-link {
@@ -143,11 +148,15 @@ export default {
   cursor: pointer;
   letter-spacing: 2px;
   font-family: 'Georgia', serif;
+  font-size: 24px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
 }
 
 .text-link:hover {
   color: #f5d76e;
   text-decoration: underline;
+  transform: scale(1.05);
 }
 
 @media (max-width: 768px) {

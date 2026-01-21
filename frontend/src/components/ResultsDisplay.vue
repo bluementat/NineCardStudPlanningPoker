@@ -33,7 +33,7 @@
         </div>
       </div>
       
-      <div class="results-actions">
+      <div v-if="isHost" class="results-actions">
         <button @click="$emit('new-round')" class="casino-button">
           NEXT DEAL
         </button>
@@ -58,6 +58,10 @@ export default {
     statistics: {
       type: Object,
       default: null
+    },
+    isHost: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['new-round']

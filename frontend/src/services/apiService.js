@@ -36,6 +36,11 @@ export const sessionService = {
     return response.data
   },
 
+  async resetSession(pin) {
+    const response = await api.post(`/sessions/${pin}/reset`)
+    return response.data
+  },
+
   async getResults(pin) {
     const response = await api.get(`/sessions/${pin}/results`)
     return response.data

@@ -75,6 +75,12 @@ class SignalRService {
     }
   }
 
+  onNewRoundStarted(callback) {
+    if (this.connection) {
+      this.connection.on('NewRoundStarted', callback)
+    }
+  }
+
   off(eventName) {
     if (this.connection) {
       this.connection.off(eventName)

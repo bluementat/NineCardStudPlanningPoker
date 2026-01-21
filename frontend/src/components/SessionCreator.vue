@@ -23,9 +23,28 @@
         <h2>YOUR TABLE PIN</h2>
         <div class="pin-display">{{ session.pin }}</div>
         <p class="pin-instruction">SHARE THIS PIN WITH YOUR TEAM</p>
+        
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label for="participantName">YOUR NAME</label>
+          <input
+            id="participantName"
+            v-model="participantName"
+            type="text"
+            class="casino-input"
+            placeholder="e.g. Maverick"
+            required
+          />
+        </div>
+
         <div class="button-group">
           <button @click="copyPin" class="casino-button">COPY PIN</button>
-          <button @click="goToSession" class="casino-button secondary">JOIN TABLE</button>
+          <button 
+            @click="joinAndGoSession" 
+            class="casino-button secondary" 
+            :disabled="loading || !participantName.trim()"
+          >
+            {{ loading ? 'SITTING DOWN...' : 'JOIN TABLE' }}
+          </button>
         </div>
       </div>
     </div>
@@ -40,6 +59,7 @@ export default {
   data() {
     return {
       sessionName: '',
+      participantName: '',
       session: null,
       loading: false
     }
@@ -69,9 +89,21 @@ export default {
         alert('PIN copied to clipboard!')
       }
     },
-    goToSession() {
-      if (this.session?.pin) {
-        this.$router.push(`/session/${this.session.pin}`)
+    async joinAndGoSession() {
+      if (!this.session?.pin || !this.participantName.trim()) return
+      
+      this.loading = true
+      try {
+        const participant = await sessionService.joinSession(this.session.pin, this.participantName)
+        this.$router.push({
+          path: `/session/${this.session.pin}`,
+          query: { participantId: participant.participantId, name: this.participantName }
+        })
+      } catch (error) {
+        console.error('Error joining session:', error)
+        alert('Failed to join session. Please try again.')
+      } finally {
+        this.loading = false
       }
     }
   }

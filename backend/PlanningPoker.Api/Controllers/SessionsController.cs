@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PlanningPoker.Api.Data;
+using PlanningPoker.Api.DTOs;
 using PlanningPoker.Api.Hubs;
 using PlanningPoker.Api.Models;
 using PlanningPoker.Api.Services;
@@ -202,6 +203,31 @@ public class SessionsController : ControllerBase
         return Ok(new { Message = "Votes revealed" });
     }
 
+    [HttpPost("{pin}/reset")]
+    public async Task<ActionResult> ResetSession(string pin)
+    {
+        if (!_pinGenerator.IsValidPin(pin))
+        {
+            return BadRequest("Invalid PIN format");
+        }
+
+        var session = await _context.Sessions
+            .Include(s => s.Votes)
+            .FirstOrDefaultAsync(s => s.PIN == pin);
+
+        if (session == null)
+        {
+            return NotFound("Session not found");
+        }
+
+        _context.Votes.RemoveRange(session.Votes);
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.Group(pin).SendAsync("NewRoundStarted", new { Pin = pin });
+
+        return Ok(new { Message = "Session reset for new round" });
+    }
+
     [HttpGet("{pin}/results")]
     public async Task<ActionResult<ResultsDto>> GetResults(string pin)
     {
@@ -250,59 +276,4 @@ public class SessionsController : ControllerBase
 
         return Ok(results);
     }
-}
-
-// DTOs
-public class CreateSessionRequest
-{
-    public string SessionName { get; set; } = string.Empty;
-}
-
-public class JoinSessionRequest
-{
-    public string Name { get; set; } = string.Empty;
-}
-
-public class SubmitVoteRequest
-{
-    public int ParticipantId { get; set; }
-    public string CardValue { get; set; } = string.Empty;
-}
-
-public class SessionDto
-{
-    public int SessionId { get; set; }
-    public string PIN { get; set; } = string.Empty;
-    public string SessionName { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public List<ParticipantDto>? Participants { get; set; }
-}
-
-public class ParticipantDto
-{
-    public int ParticipantId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public DateTime JoinedAt { get; set; }
-}
-
-public class ResultsDto
-{
-    public List<VoteResultDto> Votes { get; set; } = new();
-    public StatisticsDto? Statistics { get; set; }
-}
-
-public class VoteResultDto
-{
-    public int ParticipantId { get; set; }
-    public string ParticipantName { get; set; } = string.Empty;
-    public string CardValue { get; set; } = string.Empty;
-    public DateTime VotedAt { get; set; }
-}
-
-public class StatisticsDto
-{
-    public double Average { get; set; }
-    public int Min { get; set; }
-    public int Max { get; set; }
 }

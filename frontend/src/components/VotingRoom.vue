@@ -52,6 +52,7 @@
       v-if="isRevealed && results"
       :votes="results.votes"
       :statistics="results.statistics"
+      :is-host="isHost"
       @new-round="startNewRound"
     />
   </div>
@@ -107,6 +108,7 @@ export default {
     signalrService.off('ParticipantJoined')
     signalrService.off('VoteSubmitted')
     signalrService.off('VotesRevealed')
+    signalrService.off('NewRoundStarted')
     if (this.pin) {
       signalrService.leaveSession(this.pin)
     }
@@ -138,6 +140,10 @@ export default {
         signalrService.onVotesRevealed(async () => {
           this.isRevealed = true
           await this.loadResults()
+        })
+
+        signalrService.onNewRoundStarted(() => {
+          this.handleNewRoundStarted()
         })
       } catch (error) {
         console.error('Error setting up SignalR:', error)
@@ -180,6 +186,15 @@ export default {
       return this.votes[participantId] !== undefined
     },
     async startNewRound() {
+      if (!this.isHost) return
+      try {
+        await sessionService.resetSession(this.pin)
+      } catch (error) {
+        console.error('Error resetting session:', error)
+        alert('Failed to start new round. Please try again.')
+      }
+    },
+    handleNewRoundStarted() {
       this.isRevealed = false
       this.selectedCard = ''
       this.votes = {}

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using PlanningPoker.Api.Controllers;
 using PlanningPoker.Api.Data;
+using PlanningPoker.Api.DTOs;
 using PlanningPoker.Api.Hubs;
 using PlanningPoker.Api.Models;
 using PlanningPoker.Api.Services;
@@ -754,5 +755,155 @@ public class SessionControllerTests
         
         Assert.Single(resultsDto.Votes);
         Assert.Equal("8", resultsDto.Votes[0].CardValue);
+    }
+
+    [Fact]
+    public async Task ResetSession_ValidPin_ReturnsOk()
+    {
+        // Arrange
+        var pin = "123456";
+        var session = new Session
+        {
+            PIN = pin,
+            SessionName = "Test Session",
+            CreatedAt = DateTime.UtcNow,
+            Status = SessionStatus.Active
+        };
+        _context.Sessions.Add(session);
+        await _context.SaveChangesAsync();
+
+        _pinGeneratorMock.Setup(p => p.IsValidPin(pin)).Returns(true);
+
+        // Act
+        var result = await _controller.ResetSession(pin);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        
+        _clientProxyMock.Verify(
+            c => c.SendCoreAsync("NewRoundStarted", It.IsAny<object[]>(), default),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetSession_InvalidPin_ReturnsBadRequest()
+    {
+        // Arrange
+        var invalidPin = "invalid";
+
+        _pinGeneratorMock.Setup(p => p.IsValidPin(invalidPin)).Returns(false);
+
+        // Act
+        var result = await _controller.ResetSession(invalidPin);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Invalid PIN format", badRequestResult.Value);
+    }
+
+    [Fact]
+    public async Task ResetSession_NonExistentSession_ReturnsNotFound()
+    {
+        // Arrange
+        var pin = "999999";
+
+        _pinGeneratorMock.Setup(p => p.IsValidPin(pin)).Returns(true);
+
+        // Act
+        var result = await _controller.ResetSession(pin);
+
+        // Assert
+        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+        Assert.Equal("Session not found", notFoundResult.Value);
+    }
+
+    [Fact]
+    public async Task ResetSession_RemovesAllVotes()
+    {
+        // Arrange
+        var pin = "123456";
+        var session = new Session
+        {
+            PIN = pin,
+            SessionName = "Test Session",
+            CreatedAt = DateTime.UtcNow,
+            Status = SessionStatus.Active
+        };
+        _context.Sessions.Add(session);
+        await _context.SaveChangesAsync();
+
+        var participant1 = new Participant
+        {
+            SessionId = session.SessionId,
+            Name = "John Doe",
+            JoinedAt = DateTime.UtcNow
+        };
+        var participant2 = new Participant
+        {
+            SessionId = session.SessionId,
+            Name = "Jane Smith",
+            JoinedAt = DateTime.UtcNow
+        };
+        _context.Participants.AddRange(participant1, participant2);
+        await _context.SaveChangesAsync();
+
+        var vote1 = new Vote
+        {
+            SessionId = session.SessionId,
+            ParticipantId = participant1.ParticipantId,
+            CardValue = "5",
+            VotedAt = DateTime.UtcNow
+        };
+        var vote2 = new Vote
+        {
+            SessionId = session.SessionId,
+            ParticipantId = participant2.ParticipantId,
+            CardValue = "8",
+            VotedAt = DateTime.UtcNow
+        };
+        _context.Votes.AddRange(vote1, vote2);
+        await _context.SaveChangesAsync();
+
+        _pinGeneratorMock.Setup(p => p.IsValidPin(pin)).Returns(true);
+
+        // Act
+        var result = await _controller.ResetSession(pin);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        
+        var votes = await _context.Votes
+            .Where(v => v.SessionId == session.SessionId)
+            .ToListAsync();
+        
+        Assert.Empty(votes);
+    }
+
+    [Fact]
+    public async Task ResetSession_BroadcastsNewRoundStarted()
+    {
+        // Arrange
+        var pin = "123456";
+        var session = new Session
+        {
+            PIN = pin,
+            SessionName = "Test Session",
+            CreatedAt = DateTime.UtcNow,
+            Status = SessionStatus.Active
+        };
+        _context.Sessions.Add(session);
+        await _context.SaveChangesAsync();
+
+        _pinGeneratorMock.Setup(p => p.IsValidPin(pin)).Returns(true);
+
+        // Act
+        var result = await _controller.ResetSession(pin);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        
+        _clientProxyMock.Verify(
+            c => c.SendCoreAsync("NewRoundStarted", It.IsAny<object[]>(), default),
+            Times.Once);
     }
 }

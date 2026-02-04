@@ -23,11 +23,8 @@ builder.Services.AddCors(options =>
 });
 
 // Configure Entity Framework
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=(localdb)\\mssqllocaldb;Database=PlanningPokerDb;Trusted_Connection=True;MultipleActiveResultSets=true";
-
 builder.Services.AddDbContext<PlanningPokerDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseInMemoryDatabase("PlanningPokerDb"));
 
 // Register services
 builder.Services.AddScoped<IPinGenerator, PinGenerator>();
@@ -54,23 +51,5 @@ app.MapControllers();
 
 // Map SignalR hub
 app.MapHub<PlanningPokerHub>("/planningpokerhub");
-
-// Ensure database is created
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<PlanningPokerDbContext>();
-    
-    // Drop and recreate database to ensure schema matches current model
-    try
-    {
-        dbContext.Database.EnsureDeleted();
-    }
-    catch
-    {
-        // Database might not exist yet, which is fine
-    }
-    
-    dbContext.Database.EnsureCreated();
-}
 
 app.Run();

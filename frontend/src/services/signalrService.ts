@@ -1,12 +1,10 @@
 import * as signalR from '@microsoft/signalr'
 
 class SignalRService {
-  constructor() {
-    this.connection = null
-    this.isConnected = false
-  }
+  private connection: signalR.HubConnection | null = null
+  private isConnected: boolean = false
 
-  async connect() {
+  async connect(): Promise<void> {
     if (this.connection && this.isConnected) {
       return
     }
@@ -37,55 +35,64 @@ class SignalRService {
     }
   }
 
-  async disconnect() {
+  async disconnect(): Promise<void> {
     if (this.connection) {
       await this.connection.stop()
       this.isConnected = false
     }
   }
 
-  async joinSession(pin, participantName) {
+  async joinSession(pin: string, participantName: string): Promise<void> {
     if (!this.isConnected) {
       await this.connect()
     }
-    await this.connection.invoke('JoinSession', pin, participantName)
+    if (this.connection) {
+      await this.connection.invoke('JoinSession', pin, participantName)
+    }
   }
 
-  async leaveSession(pin) {
+  async leaveSession(pin: string): Promise<void> {
     if (this.connection && this.isConnected) {
       await this.connection.invoke('LeaveSession', pin)
     }
   }
 
-  onParticipantJoined(callback) {
+  onParticipantJoined(callback: (data: any) => void): void {
     if (this.connection) {
       this.connection.on('ParticipantJoined', callback)
     }
   }
 
-  onVoteSubmitted(callback) {
+  onVoteSubmitted(callback: (data: any) => void): void {
     if (this.connection) {
       this.connection.on('VoteSubmitted', callback)
     }
   }
 
-  onVotesRevealed(callback) {
+  onVotesRevealed(callback: () => void): void {
     if (this.connection) {
       this.connection.on('VotesRevealed', callback)
     }
   }
 
-  onNewRoundStarted(callback) {
+  onNewRoundStarted(callback: () => void): void {
     if (this.connection) {
       this.connection.on('NewRoundStarted', callback)
     }
   }
 
-  off(eventName) {
+  onSessionEnded(callback: () => void): void {
+    if (this.connection) {
+      this.connection.on('SessionEnded', callback)
+    }
+  }
+
+  off(eventName: string): void {
     if (this.connection) {
       this.connection.off(eventName)
     }
   }
 }
 
-export default new SignalRService()
+const signalrService = new SignalRService()
+export default signalrService

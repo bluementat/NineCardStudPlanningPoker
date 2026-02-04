@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using PlanningPoker.Api.Data;
 using PlanningPoker.Api.Hubs;
 using PlanningPoker.Api.Services;
@@ -9,6 +11,28 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add rate limiting services
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("CreateSessionPolicy", opt =>
+    {
+        opt.PermitLimit = 50;
+        opt.Window = TimeSpan.FromHours(1);
+    });
+
+    options.AddFixedWindowLimiter("SubmitVotePolicy", opt =>
+    {
+        opt.PermitLimit = 1;
+        opt.Window = TimeSpan.FromSeconds(1);
+    });
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", token);
+    };
+});
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -23,14 +47,12 @@ builder.Services.AddCors(options =>
 });
 
 // Configure Entity Framework
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=(localdb)\\mssqllocaldb;Database=PlanningPokerDb;Trusted_Connection=True;MultipleActiveResultSets=true";
-
 builder.Services.AddDbContext<PlanningPokerDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseInMemoryDatabase("PlanningPokerDb"));
 
 // Register services
 builder.Services.AddScoped<IPinGenerator, PinGenerator>();
+builder.Services.AddHostedService<SessionCleanupService>();
 
 // Add SignalR
 builder.Services.AddSignalR();
@@ -46,6 +68,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
+
 app.UseCors("AllowVueApp");
 
 app.UseAuthorization();
@@ -54,23 +78,5 @@ app.MapControllers();
 
 // Map SignalR hub
 app.MapHub<PlanningPokerHub>("/planningpokerhub");
-
-// Ensure database is created
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<PlanningPokerDbContext>();
-    
-    // Drop and recreate database to ensure schema matches current model
-    try
-    {
-        dbContext.Database.EnsureDeleted();
-    }
-    catch
-    {
-        // Database might not exist yet, which is fine
-    }
-    
-    dbContext.Database.EnsureCreated();
-}
 
 app.Run();

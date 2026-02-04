@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PlanningPoker.Api.Data;
@@ -28,6 +29,7 @@ public class SessionsController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("CreateSessionPolicy")]
     public async Task<ActionResult<SessionDto>> CreateSession([FromBody] CreateSessionRequest request)
     {
         var pin = await _pinGenerator.GenerateUniquePinAsync();
@@ -131,6 +133,7 @@ public class SessionsController : ControllerBase
     }
 
     [HttpPost("{pin}/votes")]
+    [EnableRateLimiting("SubmitVotePolicy")]
     public async Task<ActionResult> SubmitVote(string pin, [FromBody] SubmitVoteRequest request)
     {
         if (!_pinGenerator.IsValidPin(pin))
@@ -226,6 +229,34 @@ public class SessionsController : ControllerBase
         await _hubContext.Clients.Group(pin).SendAsync("NewRoundStarted", new { Pin = pin });
 
         return Ok(new { Message = "Session reset for new round" });
+    }
+
+    [HttpDelete("{pin}")]
+    public async Task<ActionResult> EndSession(string pin)
+    {
+        if (!_pinGenerator.IsValidPin(pin))
+        {
+            return BadRequest("Invalid PIN format");
+        }
+
+        var session = await _context.Sessions
+            .Include(s => s.Participants)
+            .Include(s => s.Votes)
+            .FirstOrDefaultAsync(s => s.PIN == pin);
+
+        if (session == null)
+        {
+            return NotFound("Session not found");
+        }
+
+        // Notify all participants that the session has ended
+        await _hubContext.Clients.Group(pin).SendAsync("SessionEnded", new { Pin = pin });
+
+        // Remove the session (cascade delete will handle participants and votes)
+        _context.Sessions.Remove(session);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Session ended and deleted successfully" });
     }
 
     [HttpGet("{pin}/results")]

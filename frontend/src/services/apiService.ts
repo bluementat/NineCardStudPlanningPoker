@@ -42,6 +42,10 @@ export const sessionService = {
   async getResults(pin: string): Promise<Results> {
     const response = await api.get<Results>(`/sessions/${pin}/results`)
     return response.data
+  },
+
+  async endSession(pin: string): Promise<void> {
+    await api.delete(`/sessions/${pin}`)
   }
 }
 

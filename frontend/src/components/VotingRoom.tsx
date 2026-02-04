@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PlayingCard from './PlayingCard';
 import ResultsDisplay from './ResultsDisplay';
 import { sessionService } from '../services/apiService';
@@ -18,6 +19,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   currentParticipantName,
   isHost,
 }) => {
+  const navigate = useNavigate();
   const [sessionName, setSessionName] = useState('');
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [selectedCard, setSelectedCard] = useState('');
@@ -81,6 +83,10 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
         signalrService.onNewRoundStarted(() => {
           handleNewRoundStarted();
         });
+
+        signalrService.onSessionEnded(() => {
+          navigate('/');
+        });
       } catch (error) {
         console.error('Error setting up SignalR:', error);
       }
@@ -93,6 +99,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       signalrService.off('VoteSubmitted');
       signalrService.off('VotesRevealed');
       signalrService.off('NewRoundStarted');
+      signalrService.off('SessionEnded');
       if (pin) {
         signalrService.leaveSession(pin);
       }
@@ -129,6 +136,20 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
     } catch (error) {
       console.error('Error resetting session:', error);
       alert('Failed to start new round. Please try again.');
+    }
+  };
+
+  const endSession = async () => {
+    if (!isHost) return;
+    if (window.confirm('Are you sure you want to end the session? This will clear all data and return everyone to the home page.')) {
+      try {
+        await sessionService.endSession(pin);
+      } catch (error) {
+        // If the session was already ended/deleted by the server broadcast, 
+        // the API call might return a 404 or fail because the connection was closed.
+        // We only show an error if it's not a "Session not found" error.
+        console.error('Error ending session:', error);
+      }
     }
   };
 
@@ -190,6 +211,12 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
           >
             Reveal Votes
           </button>
+          <button
+            onClick={endSession}
+            className="casino-button end-session-button"
+          >
+            End Session
+          </button>
         </div>
       )}
 
@@ -199,6 +226,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
           statistics={results.statistics}
           isHost={isHost}
           onNewRound={startNewRound}
+          onEndSession={endSession}
         />
       )}
     </div>

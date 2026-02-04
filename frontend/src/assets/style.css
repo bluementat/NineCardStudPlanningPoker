@@ -586,6 +586,16 @@ body {
   padding: 15px 30px;
 }
 
+.end-session-button {
+  background: linear-gradient(135deg, #b80f0a 0%, #8b0000 100%);
+  border-color: #ff6b6b;
+  margin-left: 15px;
+}
+
+.end-session-button:hover {
+  background: linear-gradient(135deg, #ff6b6b 0%, #b80f0a 100%);
+}
+
 /* Results Display Styles */
 .results-display {
   margin-top: 30px;

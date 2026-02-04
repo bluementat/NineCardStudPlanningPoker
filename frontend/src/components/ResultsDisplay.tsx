@@ -7,6 +7,7 @@ interface ResultsDisplayProps {
   statistics: Statistics | null;
   isHost: boolean;
   onNewRound: () => void;
+  onEndSession?: () => void;
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
@@ -14,6 +15,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   statistics,
   isHost,
   onNewRound,
+  onEndSession,
 }) => {
   return (
     <div className="results-display fade-in">
@@ -57,6 +59,9 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <div className="results-actions">
             <button onClick={onNewRound} className="casino-button">
               NEXT DEAL
+            </button>
+            <button onClick={onEndSession} className="casino-button end-session-button">
+              END SESSION
             </button>
           </div>
         )}

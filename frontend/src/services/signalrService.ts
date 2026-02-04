@@ -81,6 +81,12 @@ class SignalRService {
     }
   }
 
+  onSessionEnded(callback: () => void): void {
+    if (this.connection) {
+      this.connection.on('SessionEnded', callback)
+    }
+  }
+
   off(eventName: string): void {
     if (this.connection) {
       this.connection.off(eventName)

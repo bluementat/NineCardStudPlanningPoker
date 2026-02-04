@@ -52,6 +52,7 @@ builder.Services.AddDbContext<PlanningPokerDbContext>(options =>
 
 // Register services
 builder.Services.AddScoped<IPinGenerator, PinGenerator>();
+builder.Services.AddHostedService<SessionCleanupService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

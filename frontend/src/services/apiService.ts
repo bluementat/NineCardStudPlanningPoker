@@ -8,6 +8,16 @@ const api = axios.create({
   }
 })
 
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 429) {
+      alert("You are doing that too much. Please wait a moment before trying again.");
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const sessionService = {
   async createSession(sessionName: string): Promise<Session> {
     const response = await api.post<Session>('/sessions', { sessionName })

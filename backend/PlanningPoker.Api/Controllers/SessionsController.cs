@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PlanningPoker.Api.Data;
@@ -28,6 +29,7 @@ public class SessionsController : ControllerBase
     }
 
     [HttpPost]
+    [EnableRateLimiting("CreateSessionPolicy")]
     public async Task<ActionResult<SessionDto>> CreateSession([FromBody] CreateSessionRequest request)
     {
         var pin = await _pinGenerator.GenerateUniquePinAsync();
@@ -131,6 +133,7 @@ public class SessionsController : ControllerBase
     }
 
     [HttpPost("{pin}/votes")]
+    [EnableRateLimiting("SubmitVotePolicy")]
     public async Task<ActionResult> SubmitVote(string pin, [FromBody] SubmitVoteRequest request)
     {
         if (!_pinGenerator.IsValidPin(pin))

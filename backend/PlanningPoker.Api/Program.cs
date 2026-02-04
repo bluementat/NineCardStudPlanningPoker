@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using PlanningPoker.Api.Data;
 using PlanningPoker.Api.Hubs;
 using PlanningPoker.Api.Services;
@@ -9,6 +11,28 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add rate limiting services
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("CreateSessionPolicy", opt =>
+    {
+        opt.PermitLimit = 50;
+        opt.Window = TimeSpan.FromHours(1);
+    });
+
+    options.AddFixedWindowLimiter("SubmitVotePolicy", opt =>
+    {
+        opt.PermitLimit = 1;
+        opt.Window = TimeSpan.FromSeconds(1);
+    });
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", token);
+    };
+});
 
 // Configure CORS
 builder.Services.AddCors(options =>
@@ -42,6 +66,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.UseCors("AllowVueApp");
 

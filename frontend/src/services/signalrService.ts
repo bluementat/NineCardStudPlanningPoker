@@ -9,8 +9,12 @@ class SignalRService {
       return
     }
 
+    const hubUrl = import.meta.env.VITE_API_URL 
+      ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/planningpokerhub`
+      : '/planningpokerhub';
+
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl('/planningpokerhub')
+      .withUrl(hubUrl)
       .withAutomaticReconnect()
       .build()
 

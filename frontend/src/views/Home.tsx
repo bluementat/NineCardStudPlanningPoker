@@ -31,7 +31,7 @@ const Home: React.FC = () => {
           <div className="action-cards">
             <div className="action-card casino-card table-marking">
               <h2>HOST GAME</h2>
-              <p>Start a new session and invite your team</p>
+              <p>Start a session - Invite your team</p>
               <button onClick={() => setShowCreator(true)} className="casino-button">
                 CREATE TABLE
               </button>

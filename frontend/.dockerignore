@@ -1,0 +1,38 @@
+# Dependencies (reinstalled in image)
+node_modules
+
+# Build output (rebuilt in image)
+dist
+dist-ssr
+
+# Git
+.git
+.gitignore
+
+# IDE and editor
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+
+# Logs and debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env files (not needed in image)
+*.local
+.env
+.env.*
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Misc
+*.md

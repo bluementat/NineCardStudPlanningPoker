@@ -1,0 +1,92 @@
+### SessionsController API tests
+### Base URL - update if your API runs on a different port
+@baseUrl = http://localhost:5076
+### PIN - replace with the PIN returned from Create Session (first request below)
+@pin = 123456
+
+###############################################################################
+# 1. Create Session
+# Run this first; copy the "pin" from the response into @pin above for other requests.
+###############################################################################
+POST {{baseUrl}}/api/sessions
+Content-Type: application/json
+
+{
+  "sessionName": "Sprint 42 Planning"
+}
+
+###############################################################################
+# 2. Get Session
+###############################################################################
+GET {{baseUrl}}/api/sessions/{{pin}}
+
+###############################################################################
+# 3. Join Session (add participants)
+# Use the participantId from the response when submitting votes.
+###############################################################################
+POST {{baseUrl}}/api/sessions/{{pin}}/participants
+Content-Type: application/json
+
+{
+  "name": "Alice"
+}
+
+###
+
+POST {{baseUrl}}/api/sessions/{{pin}}/participants
+Content-Type: application/json
+
+{
+  "name": "Bob"
+}
+
+###############################################################################
+# 4. Submit Vote
+# Replace participantId with an actual ID from Join Session response.
+###############################################################################
+POST {{baseUrl}}/api/sessions/{{pin}}/votes
+Content-Type: application/json
+
+{
+  "participantId": 1,
+  "cardValue": "5"
+}
+
+###
+
+POST {{baseUrl}}/api/sessions/{{pin}}/votes
+Content-Type: application/json
+
+{
+  "participantId": 2,
+  "cardValue": "8"
+}
+
+###############################################################################
+# 5. Get Results (vote breakdown and statistics)
+###############################################################################
+GET {{baseUrl}}/api/sessions/{{pin}}/results
+
+###############################################################################
+# 6. Reveal Votes (notifies SignalR clients)
+###############################################################################
+POST {{baseUrl}}/api/sessions/{{pin}}/reveal
+
+###############################################################################
+# 7. Reset Session (clears votes for a new round)
+###############################################################################
+POST {{baseUrl}}/api/sessions/{{pin}}/reset
+
+###############################################################################
+# 8. End Session (deletes session and notifies clients)
+###############################################################################
+DELETE {{baseUrl}}/api/sessions/{{pin}}
+
+###############################################################################
+# Error cases (optional)
+###############################################################################
+# Invalid PIN format
+GET {{baseUrl}}/api/sessions/000
+
+# Session not found
+GET {{baseUrl}}/api/sessions/999999

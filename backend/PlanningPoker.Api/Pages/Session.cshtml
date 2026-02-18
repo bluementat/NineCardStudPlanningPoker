@@ -1,0 +1,136 @@
+@page "{pin}"
+@model PlanningPoker.Api.Pages.SessionModel
+@{
+    ViewData["Title"] = Model.Session?.SessionName ?? "Session";
+}
+
+<div class="voting-room">
+    <div class="session-header casino-card">
+        <h1 class="session-name">@Model.Session?.SessionName</h1>
+        <div class="session-pin">
+            TABLE PIN: @Model.Session?.PIN
+            <button class="casino-button" style="padding: 4px 12px; font-size: 12px; margin-left: 10px;" onclick="copyPin()">Copy</button>
+        </div>
+    </div>
+
+    <!-- PIN Modal -->
+    <div id="pinModal" class="casino-modal" style="display: none;">
+        <div class="casino-modal-content casino-card">
+            <h2 class="casino-title">Table Ready!</h2>
+            <p style="text-align: center; font-style: italic; margin-bottom: 20px;">Share this PIN with your team:</p>
+            <div class="pin-display" id="modalPin">@Model.Session?.PIN</div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="casino-button" onclick="copyPin()">Copy PIN</button>
+                <button class="casino-button" style="margin-left: 15px; background: rgba(0,0,0,0.3);" onclick="closePinModal()">Start Playing</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="participants-section">
+        <h2 class="section-title">Players at Table</h2>
+        <div id="participantsList" class="participants-list">
+            @foreach (var participant in Model.Session?.Participants ?? new List<PlanningPoker.Api.Models.Participant>())
+            {
+                var hasVoted = Model.Session?.Votes.Any(v => v.ParticipantId == participant.ParticipantId) ?? false;
+                <div class="participant-item @(hasVoted ? "has-voted" : "")" data-participant-id="@participant.ParticipantId">
+                    <div class="chip-avatar">@participant.Name[0].ToString().ToUpper()</div>
+                    <span class="participant-name">@participant.Name</span>
+                    @if (hasVoted)
+                    {
+                        <span class="vote-indicator">VOTED</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div id="votingSection" class="voting-section casino-card" style="@(Model.IsRevealed ? "display:none" : "")">
+        <h2 class="section-title">Place Your Bet</h2>
+        <div class="cards-container">
+            @{
+                var suits = new[] { "♠", "♥", "♣", "♦" };
+                var values = new[] { "0", "1", "2", "3", "5", "8", "13", "21", "∞" };
+            }
+            @for (int i = 0; i < values.Length; i++)
+            {
+                var val = values[i];
+                var suit = suits[i % 4];
+                var colorClass = (suit == "♥" || suit == "♦") ? "red" : "black";
+                
+                <div class="playing-card @(Model.CurrentVote == val ? "selected" : "")" data-value="@val" data-suit="@suit" data-color="@colorClass" onclick="submitVote('@val', '@suit', '@colorClass')">
+                    <div class="card-inner">
+                        <div class="card-front @colorClass">
+                            <div class="card-corner top-left">
+                                <span class="card-value">@val</span>
+                                <span class="card-suit">@suit</span>
+                            </div>
+                            <div class="card-center">
+                                <span class="card-suit-large">@suit</span>
+                            </div>
+                            <div class="card-corner bottom-right">
+                                <span class="card-value">@val</span>
+                                <span class="card-suit">@suit</span>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-back-pattern">
+                                <div class="pattern-logo">9</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div id="selectedCardInfo" class="selected-card-info">
+            @(string.IsNullOrEmpty(Model.CurrentVote) ? "Choose a card to vote" : $"You selected: {Model.CurrentVote}")
+        </div>
+
+        @if (Model.IsHost)
+        {
+            <div class="host-controls">
+                <button class="casino-button reveal-button" onclick="revealVotes()">Reveal All Bets</button>
+                <button class="casino-button end-session-button" onclick="endSession()">Close Table</button>
+            </div>
+        }
+    </div>
+
+    <div id="resultsSection" class="results-display casino-card" style="@(Model.IsRevealed ? "" : "display:none")">
+        <h2 class="results-title">The Reveal</h2>
+        <div id="votesContainer" class="votes-container">
+            @* Populated via JS/SignalR or initial load *@
+        </div>
+
+        <div id="statistics" class="statistics">
+            <div class="stat-item">
+                <span class="stat-label">AVERAGE</span>
+                <span id="statAverage" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">MIN</span>
+                <span id="statMin" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">MAX</span>
+                <span id="statMax" class="stat-value">0</span>
+            </div>
+        </div>
+
+        @if (Model.IsHost)
+        {
+            <div class="results-actions">
+                <button class="casino-button" onclick="resetSession()">New Round</button>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const sessionPin = "@Model.Session?.PIN";
+        const participantId = @(Model.ParticipantId ?? 0);
+        const participantName = "@Model.ParticipantName";
+        const initialIsRevealed = @(Model.IsRevealed.ToString().ToLower());
+        const isNewSession = @((HttpContext.Session.GetString("IsNewSession") == "true").ToString().ToLower());
+    </script>
+    <script src="~/js/poker.js" asp-append-version="true"></script>
+}

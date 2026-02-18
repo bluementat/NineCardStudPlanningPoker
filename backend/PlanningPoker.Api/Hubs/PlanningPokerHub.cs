@@ -5,10 +5,13 @@ namespace PlanningPoker.Api.Hubs;
 
 public class PlanningPokerHub : Hub
 {
-    public async Task JoinSession(string pin, string participantName)
+    public async Task JoinSession(string pin, int participantId, string participantName)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, pin);
-        await Clients.Group(pin).SendAsync("ParticipantJoined", new { Pin = pin, ParticipantName = participantName });
+        await Clients.Group(pin).SendAsync("ParticipantJoined", new { 
+            ParticipantId = participantId, 
+            Name = participantName 
+        });
     }
 
     public async Task LeaveSession(string pin)

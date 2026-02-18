@@ -7,6 +7,7 @@ public class Session
     public string SessionName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public SessionStatus Status { get; set; }
+    public int? HostParticipantId { get; set; }
     
     // Navigation properties
     public ICollection<Participant> Participants { get; set; } = new List<Participant>();

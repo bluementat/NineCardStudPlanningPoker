@@ -79,12 +79,14 @@ public class SessionsController : ControllerBase
             SessionName = session.SessionName,
             CreatedAt = session.CreatedAt,
             Status = session.Status.ToString(),
-            Participants = session.Participants.Select(p => new ParticipantDto
-            {
-                ParticipantId = p.ParticipantId,
-                Name = p.Name,
-                JoinedAt = p.JoinedAt
-            }).ToList()
+            Participants = session.Participants
+                .OrderBy(p => p.JoinedAt)
+                .Select(p => new ParticipantDto
+                {
+                    ParticipantId = p.ParticipantId,
+                    Name = p.Name,
+                    JoinedAt = p.JoinedAt
+                }).ToList()
         });
     }
 

@@ -1,6 +1,6 @@
-# Planning Poker Casino
+# Nine-Card Stud Planning Poker
 
-A beautiful, casino-themed Planning Poker application built with .NET 8 backend and Vue.js frontend, featuring real-time updates via SignalR.
+A beautiful, casino-themed Planning Poker application built with .NET 8 backend and React frontend, featuring real-time updates via SignalR.
 
 ## Features
 
@@ -20,10 +20,11 @@ A beautiful, casino-themed Planning Poker application built with .NET 8 backend 
 - CORS configuration for frontend
 
 ### Frontend
-- Vue.js 3 (Composition API)
+- React 18 with TypeScript
+- React Router for navigation
 - @microsoft/signalr for SignalR client
 - Vite for build tooling
-- Vue Router for navigation
+- Axios for HTTP requests
 
 ## Project Structure
 
@@ -72,7 +73,7 @@ NineCardStudPokerPlanning/
    dotnet run
    ```
 
-   The API will be available at `https://localhost:5000` (or the port specified in launchSettings.json)
+   The API will be available at `http://localhost:5076` (or the port specified in launchSettings.json)
 
 ### Frontend Setup
 
@@ -108,7 +109,7 @@ NineCardStudPokerPlanning/
    - Click "Join Session"
 
 3. **Vote**:
-   - Select a card value (Fibonacci sequence: 0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, or ?)
+   - Select a card value (Fibonacci sequence: 0, 1, 2, 3, 5, 8, 13, 21, ?)
    - Your vote is submitted automatically
 
 4. **Reveal Votes**:
@@ -117,49 +118,49 @@ NineCardStudPokerPlanning/
 
 ## Azure Deployment
 
-### Backend (Azure App Service)
+You can deploy in either of two ways: as **Azure App Service + Static Web App**, or by **containerizing both projects and running them as Azure Container Apps**.
 
+### Option 1: App Service and Static Web App
+
+#### Backend (Azure App Service)
 1. Create an Azure App Service (Windows or Linux)
-2. Create an Azure SQL Database
-3. Update the connection string in App Service Configuration
-4. Deploy the backend:
+2. Deploy the backend:
    ```bash
    cd backend/PlanningPoker.Api
    dotnet publish -c Release
    # Deploy using Azure CLI, VS Code extension, or Visual Studio
    ```
+3. Update CORS settings in `Program.cs` to include your frontend URL
+4. If using a custom database, set the connection string in App Service Configuration
 
-5. Update CORS settings in `Program.cs` to include your frontend URL
+#### Frontend (Azure Static Web Apps or App Service)
+- **Azure Static Web Apps**: Create a Static Web App, connect your repo, and set app location `frontend`, output `dist`, build command `npm run build`.
+- **Azure App Service**: Run `npm run build` in `frontend`, then deploy the `dist` folder.
 
-### Frontend (Azure Static Web Apps or App Service)
+Configure the frontend’s API base URL for production (e.g. environment variables or build-time config in `vite.config.js`).
 
-#### Option 1: Azure Static Web Apps
-1. Create an Azure Static Web App
-2. Connect to your Git repository
-3. Configure build settings:
-   - App location: `frontend`
-   - Output location: `dist`
-   - Build command: `npm run build`
+### Option 2: Azure Container Apps
 
-#### Option 2: Azure App Service
-1. Build the frontend:
-   ```bash
-   cd frontend
-   npm run build
-   ```
-2. Deploy the `dist` folder to Azure App Service
+Both the backend and frontend can be containerized and run as **Azure Container Apps**.
 
-3. Update the API endpoint in `vite.config.js` or use environment variables
+1. **Backend**: Build and push the backend image (e.g. from a Dockerfile in `backend/PlanningPoker.Api`), then create a Container App using that image. Set the app URL in CORS and, if needed, the database connection string as environment variables.
+2. **Frontend**: Build and push the frontend image (e.g. from the Dockerfile in `frontend`), then create a second Container App. Configure the API base URL so the frontend calls your backend Container App URL.
+
+Deploy both container apps, ensure the backend allows the frontend’s URL in CORS, and point the frontend at the backend’s URL.
 
 ### Environment Variables
 
 For production, set the following:
 
-**Backend (App Service Configuration)**:
-- `ConnectionStrings:DefaultConnection`: Azure SQL Database connection string
+**Backend**:
+- Target Port is 8080
+- Internal Ingress is recommended. This allows communication only from within the container environment - Specifically from the frontend.
+- You'll need the FQDN of the backend for the frontend configuration.
 
-**Frontend**:
-- Update `vite.config.js` proxy settings or use environment variables for API URL
+**Frontend**: 
+- Target Port is 80
+- Use External Ingress to make the frontend reachable from the internet.
+- In the Enviornment Variables, set API_URL to the backend FQDN.
 
 ## API Endpoints
 
@@ -178,7 +179,7 @@ For production, set the following:
   - `VoteSubmitted` - When a vote is submitted
   - `VotesRevealed` - When votes are revealed
 
-## Database Schema
+## In-Memory Database Schema
 
 - **Sessions**: SessionId, PIN, SessionName, CreatedAt, Status
 - **Participants**: ParticipantId, SessionId, Name, JoinedAt
@@ -186,10 +187,9 @@ For production, set the following:
 
 ## Development Notes
 
-- The database is automatically created on first run using `EnsureCreated()`
+- The In-Memory Database is automatically created on first run using `EnsureCreated()`
 - For production, use migrations: `dotnet ef migrations add InitialCreate` and `dotnet ef database update`
-- CORS is configured for local development ports (5173, 3000, 8080)
-- Update CORS origins in `Program.cs` for production
+- The frontend Vite dev server proxies `/api` and `/planningpokerhub` to the backend (default `http://localhost:5076`); adjust `vite.config.js` if your backend runs on a different port
 
 ## License
 

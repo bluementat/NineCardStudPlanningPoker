@@ -26,6 +26,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   const [votes, setVotes] = useState<Record<number, string>>({});
   const [isRevealed, setIsRevealed] = useState(false);
   const [results, setResults] = useState<Results | null>(null);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   const cardValues = ['0', '1', '2', '3', '5', '8', '13', '21', '∞'];
 
@@ -141,15 +142,16 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
 
   const endSession = async () => {
     if (!isHost) return;
-    if (window.confirm('Are you sure you want to end the session? This will clear all data and return everyone to the home page.')) {
-      try {
-        await sessionService.endSession(pin);
-      } catch (error) {
-        // If the session was already ended/deleted by the server broadcast, 
-        // the API call might return a 404 or fail because the connection was closed.
-        // We only show an error if it's not a "Session not found" error.
-        console.error('Error ending session:', error);
-      }
+    setShowEndConfirm(true);
+  };
+
+  const confirmEndSession = async () => {
+    try {
+      await sessionService.endSession(pin);
+    } catch (error) {
+      console.error('Error ending session:', error);
+    } finally {
+      setShowEndConfirm(false);
     }
   };
 
@@ -158,7 +160,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   };
 
   return (
-    <div className="voting-room">
+    <div className="voting-room home bg-area">
       <div className="session-header table-marking">
         <h1 className="session-name">{sessionName}</h1>
         <div className="session-pin">SESSION ID: {pin}</div>
@@ -228,6 +230,31 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
           onNewRound={startNewRound}
           onEndSession={endSession}
         />
+      )}
+
+      {showEndConfirm && (
+        <div className="modal-overlay">
+          <div className="casino-modal">
+            <h2 className="modal-title">Close Table?</h2>
+            <p className="modal-content">
+              Are you sure you want to end the session? This will clear all data and return everyone to the lobby.
+            </p>
+            <div className="modal-actions">
+              <button 
+                onClick={() => setShowEndConfirm(false)} 
+                className="casino-button modal-button cancel"
+              >
+                STAY
+              </button>
+              <button 
+                onClick={confirmEndSession} 
+                className="casino-button modal-button end-session-button"
+              >
+                END GAME
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -20,7 +20,7 @@ const Home: React.FC = () => {
   }, [location]);
 
   return (
-    <div className="home">
+    <div className={`home ${showCreator || joining ? 'bg-area' : 'bg-lobby'}`}>
       <div className="casino-container">
         <div className={`welcome-section ${showCreator || joining ? 'compact' : ''}`}>
           <h1 className="main-title">9-Card Stud</h1>

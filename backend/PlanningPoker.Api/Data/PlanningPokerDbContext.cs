@@ -61,12 +61,11 @@ public class PlanningPokerDbContext : DbContext
                 .WithMany(s => s.Votes)
                 .HasForeignKey(e => e.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
-            // Use Restrict instead of Cascade to avoid multiple cascade paths
-            // Votes will be deleted when Session is deleted (via Session -> Vote cascade)
+            
             entity.HasOne(e => e.Participant)
                 .WithMany(p => p.Votes)
                 .HasForeignKey(e => e.ParticipantId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
             
             // Ensure one vote per participant per session (for current round)
             entity.HasIndex(e => new { e.SessionId, e.ParticipantId, e.VotedAt });

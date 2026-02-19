@@ -8,6 +8,7 @@ const SessionCreator: React.FC = () => {
   const [participantName, setParticipantName] = useState('');
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const navigate = useNavigate();
 
   const createSession = async (e: React.FormEvent) => {
@@ -29,7 +30,8 @@ const SessionCreator: React.FC = () => {
   const copyPin = () => {
     if (session?.pin) {
       navigator.clipboard.writeText(session.pin);
-      alert('PIN copied to clipboard!');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
   };
 
@@ -102,6 +104,13 @@ const SessionCreator: React.FC = () => {
           </div>
         )}
       </div>
+      {showToast && (
+        <div className="toast-container">
+          <div className="casino-toast">
+            PIN COPIED TO CLIPBOARD
+          </div>
+        </div>
+      )}
     </div>
   );
 };

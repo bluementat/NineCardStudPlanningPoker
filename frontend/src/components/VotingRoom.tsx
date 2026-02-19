@@ -66,9 +66,20 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       await loadSession();
       try {
         await signalrService.connect();
-        await signalrService.joinSession(pin, currentParticipantName || 'Participant');
+        if (currentParticipantId != null) {
+          await signalrService.joinSession(pin, currentParticipantId, currentParticipantName || 'Participant');
+        }
 
         signalrService.onParticipantJoined(() => {
+          loadSession();
+        });
+
+        signalrService.onParticipantLeft((data: { participantId: number }) => {
+          setVotes((prev) => {
+            const next = { ...prev };
+            delete next[data.participantId];
+            return next;
+          });
           loadSession();
         });
 
@@ -97,6 +108,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
 
     return () => {
       signalrService.off('ParticipantJoined');
+      signalrService.off('ParticipantLeft');
       signalrService.off('VoteSubmitted');
       signalrService.off('VotesRevealed');
       signalrService.off('NewRoundStarted');
@@ -105,7 +117,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
         signalrService.leaveSession(pin);
       }
     };
-  }, [pin, currentParticipantName, loadSession, loadResults, handleNewRoundStarted]);
+  }, [pin, currentParticipantId, currentParticipantName, loadSession, loadResults, handleNewRoundStarted]);
 
   const selectCard = async (cardValue: string) => {
     if (!currentParticipantId || isRevealed) return;
@@ -160,7 +172,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   };
 
   return (
-    <div className="voting-room home bg-area">
+    <div className="voting-room home">
       <div className="session-header table-marking">
         <h1 className="session-name">{sessionName}</h1>
         <div className="session-pin">SESSION ID: {pin}</div>

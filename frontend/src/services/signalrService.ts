@@ -46,12 +46,12 @@ class SignalRService {
     }
   }
 
-  async joinSession(pin: string, participantName: string): Promise<void> {
+  async joinSession(pin: string, participantId: number, participantName: string): Promise<void> {
     if (!this.isConnected) {
       await this.connect()
     }
     if (this.connection) {
-      await this.connection.invoke('JoinSession', pin, participantName)
+      await this.connection.invoke('JoinSession', pin, participantId, participantName)
     }
   }
 
@@ -88,6 +88,12 @@ class SignalRService {
   onSessionEnded(callback: () => void): void {
     if (this.connection) {
       this.connection.on('SessionEnded', callback)
+    }
+  }
+
+  onParticipantLeft(callback: (data: any) => void): void {
+    if (this.connection) {
+      this.connection.on('ParticipantLeft', callback)
     }
   }
 

@@ -459,6 +459,10 @@ body {
   opacity: 0.6;
 }
 
+.playing-card.revealed.disabled {
+  opacity: 1;
+}
+
 .card-inner {
   position: relative;
   width: 100%;

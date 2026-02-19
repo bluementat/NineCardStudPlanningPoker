@@ -293,6 +293,22 @@ body {
   background-image: url('./img/CasinoArea.png');
 }
 
+.bg-table {
+  background-image: url('./img/CasinoTable.jpg');
+  background-size: 100% 100%;
+}
+
+@media (max-width: 768px) {
+  .bg-table {
+    background-size: auto;
+  }
+}
+
+.session-view.bg-table {
+  min-height: 100vh;
+  width: 100%;
+}
+
 .welcome-section {
   text-align: center;
   margin-bottom: 50px;

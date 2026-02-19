@@ -61,10 +61,11 @@ const SessionCreator: React.FC = () => {
               <input
                 id="sessionName"
                 value={sessionName}
-                onChange={(e) => setSessionName(e.target.value)}
+                onChange={(e) => setSessionName(e.target.value.slice(0, 30))}
                 type="text"
                 className="casino-input"
                 placeholder="e.g. Sprint 42 Planning"
+                maxLength={30}
                 required
               />
             </div>
@@ -83,10 +84,11 @@ const SessionCreator: React.FC = () => {
               <input
                 id="participantName"
                 value={participantName}
-                onChange={(e) => setParticipantName(e.target.value)}
+                onChange={(e) => setParticipantName(e.target.value.slice(0, 30))}
                 type="text"
                 className="casino-input"
                 placeholder="e.g. Maverick"
+                maxLength={30}
                 required
               />
             </div>

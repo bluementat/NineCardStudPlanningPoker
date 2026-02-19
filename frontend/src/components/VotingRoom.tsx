@@ -172,7 +172,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   };
 
   return (
-    <div className="voting-room home">
+    <div className="voting-room">
       <div className="session-header table-marking">
         <h1 className="session-name">{sessionName}</h1>
         <div className="session-pin">SESSION ID: {pin}</div>

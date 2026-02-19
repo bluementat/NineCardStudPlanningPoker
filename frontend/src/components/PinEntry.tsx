@@ -74,10 +74,11 @@ const PinEntry: React.FC<PinEntryProps> = ({ initialPin = '' }) => {
             <input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value.slice(0, 30))}
               type="text"
               className="casino-input"
               placeholder="e.g. Maverick"
+              maxLength={30}
               required
             />
           </div>

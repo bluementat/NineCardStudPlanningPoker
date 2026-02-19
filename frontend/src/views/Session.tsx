@@ -71,7 +71,7 @@ const Session: React.FC = () => {
   }
 
   return (
-    <div className="session-view">
+    <div className="session-view home bg-table">
       <VotingRoom
         pin={pin!}
         currentParticipantId={participantId}

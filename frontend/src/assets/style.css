@@ -139,6 +139,10 @@ body {
 .home {
   min-height: 100vh;
   padding: 40px 20px;
+  background-image: url('./img/CasinoLobby.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .welcome-section {

@@ -18,12 +18,12 @@ builder.Services.AddRateLimiter(options =>
     options.AddFixedWindowLimiter("CreateSessionPolicy", opt =>
     {
         opt.PermitLimit = 50;
-        opt.Window = TimeSpan.FromHours(1);
+        opt.Window = TimeSpan.FromSeconds(60);
     });
 
     options.AddFixedWindowLimiter("SubmitVotePolicy", opt =>
     {
-        opt.PermitLimit = 1;
+        opt.PermitLimit = 15;
         opt.Window = TimeSpan.FromSeconds(1);
     });
 

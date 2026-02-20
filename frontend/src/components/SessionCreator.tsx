@@ -76,11 +76,12 @@ const SessionCreator: React.FC = () => {
         ) : (
           <div className="pin-section fade-in">
             <h2>YOUR TABLE PIN</h2>
-            <div className="pin-display">{session.pin}</div>
             <p className="pin-instruction">SHARE THIS PIN WITH YOUR TEAM</p>
+            <div className="pin-display">{session.pin}</div>
+            <hr className="pin-section-divider" />
 
             <div className="form-group" style={{ marginBottom: '25px' }}>
-              <label htmlFor="participantName">YOUR NAME</label>
+              <label htmlFor="participantName">ENTER YOUR NAME</label>
               <input
                 id="participantName"
                 value={participantName}

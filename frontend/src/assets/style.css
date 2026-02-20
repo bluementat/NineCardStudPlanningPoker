@@ -319,6 +319,13 @@ body {
   margin-bottom: 20px;
 }
 
+.main-logo {
+  max-width: min(500px, 100%);
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
 .main-title {
   font-size: 84px;
   color: #d4af37;
@@ -345,6 +352,10 @@ body {
   gap: 40px;
   margin-top: 10px;
   flex-wrap: wrap;
+}
+
+.action-cards-mobile {
+  display: none;
 }
 
 .action-card {
@@ -408,6 +419,60 @@ body {
   letter-spacing: 2px;
 }
 
+.session-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.session-form .form-group {
+  width: 100%;
+}
+
+.session-form .form-group label {
+  text-align: center;
+}
+
+.pin-instruction {
+  font-size: 12px;
+  text-align: center;
+}
+
+.pin-section-divider {
+  border: none;
+  border-top: 1px solid rgba(212, 175, 55, 0.5);
+  margin: 20px 0;
+}
+
+.pin-section h2 {
+  text-align: center;
+}
+
+.pin-section .form-group label {
+  text-align: center;
+}
+
+.pin-section .button-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pin-entry .join-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pin-entry .join-form .form-group {
+  width: 100%;
+}
+
+.pin-entry .join-form .form-group label {
+  text-align: center;
+}
+
 .form-group label {
   display: block;
   margin-bottom: 12px;
@@ -418,7 +483,7 @@ body {
 
 .pin-input {
   text-align: center;
-  font-size: 42px;
+  font-size: 32px;
   letter-spacing: 12px;
   font-weight: 900;
   color: #d4af37 !important;
@@ -445,9 +510,63 @@ body {
     font-size: 18px;
   }
   
-  .action-cards {
+  .action-cards-desktop {
+    display: none;
+  }
+  
+  .action-cards-mobile {
+    display: block;
+    margin-top: 10px;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .action-card-unified {
+    padding: 20px;
+    display: flex;
     flex-direction: column;
-    align-items: center;
+    gap: 20px;
+  }
+  
+  .action-card-unified .action-option {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  }
+  
+  .action-card-unified .action-option:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  
+  .action-card-unified .action-option h2 {
+    color: #d4af37;
+    font-size: 24px;
+    margin-bottom: 6px;
+    font-family: 'Georgia', serif;
+  }
+  
+  .casino-toast {
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .pin-entry .join-form .form-group:first-of-type {
+    margin-bottom: 24px;
+  }
+  
+  .session-creator .casino-title {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+  
+  .action-card-unified .action-option p {
+    color: #f5f5dc;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-style: italic;
+    opacity: 0.8;
   }
 }
 

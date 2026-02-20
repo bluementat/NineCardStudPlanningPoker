@@ -16,7 +16,7 @@ A beautiful, casino-themed Planning Poker application built with .NET 8 backend 
 ### Backend
 - .NET 8 Web API
 - SignalR for real-time communication
-- Entity Framework Core with SQL Server
+- Entity Framework Core with In-Memory Sql Database
 - CORS configuration for frontend
 
 ### Frontend

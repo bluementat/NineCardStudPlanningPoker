@@ -1,4 +1,4 @@
-# Nine-Card Stud Planning Poker
+<img src="frontend/src/assets/img/NCSPPLogo.png" alt="Nine-Card Stud Planning Poker" width="240" />
 
 A beautiful, casino-themed Planning Poker application built with .NET 8 backend and React frontend, featuring real-time updates via SignalR.
 

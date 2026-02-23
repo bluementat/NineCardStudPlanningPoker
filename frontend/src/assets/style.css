@@ -877,6 +877,19 @@ body {
   padding: 15px 30px;
 }
 
+.host-mode-button {
+  background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+  border-color: #d4af37;
+  color: #d4af37;
+  margin-right: 15px;
+}
+
+.host-mode-button.active {
+  background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+  color: #1a1a1a;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+}
+
 .end-session-button {
   background: linear-gradient(135deg, #b80f0a 0%, #8b0000 100%);
   border-color: #ff6b6b;

@@ -6,6 +6,7 @@ public class Participant
     public int SessionId { get; set; }
     public string Name { get; set; } = string.Empty;
     public DateTime JoinedAt { get; set; }
+    public bool IsHostOnly { get; set; }
     
     // Navigation properties
     public Session Session { get; set; } = null!;

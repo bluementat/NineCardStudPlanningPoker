@@ -2,6 +2,7 @@ export interface Participant {
   participantId: number;
   name: string;
   joinedAt: string;
+  isHostOnly: boolean;
 }
 
 export interface Session {

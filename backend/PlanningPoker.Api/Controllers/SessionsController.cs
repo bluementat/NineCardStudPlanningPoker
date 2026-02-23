@@ -85,7 +85,8 @@ public class SessionsController : ControllerBase
                 {
                     ParticipantId = p.ParticipantId,
                     Name = p.Name,
-                    JoinedAt = p.JoinedAt
+                    JoinedAt = p.JoinedAt,
+                    IsHostOnly = p.IsHostOnly
                 }).ToList()
         });
     }
@@ -123,14 +124,16 @@ public class SessionsController : ControllerBase
         {
             ParticipantId = participant.ParticipantId,
             Name = participant.Name,
-            JoinedAt = participant.JoinedAt
+            JoinedAt = participant.JoinedAt,
+            IsHostOnly = participant.IsHostOnly
         });
 
         return Ok(new ParticipantDto
         {
             ParticipantId = participant.ParticipantId,
             Name = participant.Name,
-            JoinedAt = participant.JoinedAt
+            JoinedAt = participant.JoinedAt,
+            IsHostOnly = participant.IsHostOnly
         });
     }
 
@@ -261,6 +264,40 @@ public class SessionsController : ControllerBase
         return Ok(new { Message = "Session ended and deleted successfully" });
     }
 
+    [HttpPost("{pin}/participants/{participantId}/host-mode")]
+    public async Task<ActionResult> ToggleHostMode(string pin, int participantId, [FromBody] bool isHostOnly)
+    {
+        if (!_pinGenerator.IsValidPin(pin))
+        {
+            return BadRequest("Invalid PIN format");
+        }
+
+        var session = await _context.Sessions.FirstOrDefaultAsync(s => s.PIN == pin);
+        if (session == null)
+        {
+            return NotFound("Session not found");
+        }
+
+        var participant = await _context.Participants
+            .FirstOrDefaultAsync(p => p.ParticipantId == participantId && p.SessionId == session.SessionId);
+
+        if (participant == null)
+        {
+            return NotFound("Participant not found");
+        }
+
+        participant.IsHostOnly = isHostOnly;
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.Group(pin).SendAsync("HostModeChanged", new
+        {
+            ParticipantId = participant.ParticipantId,
+            IsHostOnly = participant.IsHostOnly
+        });
+
+        return Ok(new { Message = $"Host mode updated to {isHostOnly}" });
+    }
+
     [HttpGet("{pin}/results")]
     public async Task<ActionResult<ResultsDto>> GetResults(string pin)
     {
@@ -280,6 +317,7 @@ public class SessionsController : ControllerBase
         }
 
         var votes = session.Votes
+            .Where(v => !v.Participant.IsHostOnly)
             .OrderByDescending(v => v.VotedAt)
             .GroupBy(v => v.ParticipantId)
             .Select(g => g.First())

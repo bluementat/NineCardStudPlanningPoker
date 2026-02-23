@@ -162,6 +162,20 @@ For production, set the following:
 - Use External Ingress to make the frontend reachable from the internet.
 - In the Enviornment Variables, set API_URL to the backend FQDN.
 
+## Rate Limiting and Reverse Proxy
+
+The API applies **per-client rate limits** to reduce abuse and DDoS impact:
+
+- **Create session**: 50 requests per minute per client
+- **Submit vote**: 15 requests per second per client
+
+Limits are applied **per source (by client IP)** so one abusive client does not block others. The client IP is taken from the connection when the API is reached directly, or from the **`X-Forwarded-For`** header when the API runs behind a reverse proxy (e.g. Nginx).
+
+For correct per-IP limiting behind a proxy:
+
+- The proxy must send **`X-Forwarded-For`** (and optionally **`X-Forwarded-Proto`**) to the backend. The frontend Nginx setup in this repo already sets these headers when proxying to the API.
+- The API uses ASP.NET Core **Forwarded Headers** middleware so `RemoteIpAddress` reflects the client IP from `X-Forwarded-For`. By default, only **loopback** proxies are trusted. If the proxy runs on a **different host** (e.g. Nginx in another container), configure the backend to trust that proxy: add the proxy’s IP to `ForwardedHeaders:KnownProxies` in configuration, or add the proxy’s subnet to `KnownNetworks`, so the middleware accepts and uses `X-Forwarded-For`.
+
 ## API Endpoints
 
 - `POST /api/sessions` - Create a new session

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
@@ -12,19 +13,27 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add rate limiting services
+// Add rate limiting services (per-client-IP to limit abusive sources, not all users)
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("CreateSessionPolicy", opt =>
+    options.AddPolicy("CreateSessionPolicy", context =>
     {
-        opt.PermitLimit = 50;
-        opt.Window = TimeSpan.FromSeconds(60);
+        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 50,
+            Window = TimeSpan.FromSeconds(60)
+        });
     });
 
-    options.AddFixedWindowLimiter("SubmitVotePolicy", opt =>
+    options.AddPolicy("SubmitVotePolicy", context =>
     {
-        opt.PermitLimit = 15;
-        opt.Window = TimeSpan.FromSeconds(1);
+        var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 15,
+            Window = TimeSpan.FromSeconds(1)
+        });
     });
 
     options.OnRejected = async (context, token) =>
@@ -60,6 +69,14 @@ builder.Services.AddHostedService<SessionCleanupService>();
 // Add SignalR
 builder.Services.AddSignalR();
 
+// Trust X-Forwarded-For / X-Forwarded-Proto when behind Nginx or another reverse proxy.
+// By default only loopback is trusted; when the proxy is on a different host (e.g. another container),
+// add its IP to KnownProxies so the app uses the client IP from X-Forwarded-For for rate limiting.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -69,8 +86,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
-
 app.UseRateLimiter();
 
 app.UseCors("AllowVueApp");

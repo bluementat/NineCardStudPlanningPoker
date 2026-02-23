@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlayingCard from './PlayingCard';
 import ResultsDisplay from './ResultsDisplay';
@@ -28,6 +28,9 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   const [results, setResults] = useState<Results | null>(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [isHostOnly, setIsHostOnly] = useState(false);
+
+  const latestRequestedCardRef = useRef<string | null>(null);
+  const voteSubmitInFlightRef = useRef(false);
 
   const cardValues = ['0', '1', '2', '3', '5', '8', '13', '21', '∞'];
 
@@ -65,7 +68,38 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
     setSelectedCard('');
     setVotes({});
     setResults(null);
+    latestRequestedCardRef.current = null;
+    voteSubmitInFlightRef.current = false;
   }, []);
+
+  const maybeSubmit = useCallback(() => {
+    if (voteSubmitInFlightRef.current) return;
+    const toSubmit = latestRequestedCardRef.current;
+    if (!toSubmit || !currentParticipantId) return;
+
+    voteSubmitInFlightRef.current = true;
+    sessionService
+      .submitVote(pin, currentParticipantId, toSubmit)
+      .then(() => {
+        if (latestRequestedCardRef.current === toSubmit) {
+          setVotes((prev) => ({ ...prev, [currentParticipantId]: toSubmit }));
+        }
+        voteSubmitInFlightRef.current = false;
+        if (latestRequestedCardRef.current !== toSubmit) {
+          maybeSubmit();
+        }
+      })
+      .catch((error) => {
+        if (latestRequestedCardRef.current === toSubmit) {
+          console.error('Error submitting vote:', error);
+          alert('Failed to submit vote. Please try again.');
+        }
+        voteSubmitInFlightRef.current = false;
+        if (latestRequestedCardRef.current !== toSubmit) {
+          maybeSubmit();
+        }
+      });
+  }, [pin, currentParticipantId]);
 
   useEffect(() => {
     const setup = async () => {
@@ -136,17 +170,12 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
     };
   }, [pin, currentParticipantId, currentParticipantName, loadSession, loadResults, handleNewRoundStarted]);
 
-  const selectCard = async (cardValue: string) => {
+  const selectCard = (cardValue: string) => {
     if (!currentParticipantId || isRevealed) return;
 
     setSelectedCard(cardValue);
-    try {
-      await sessionService.submitVote(pin, currentParticipantId, cardValue);
-      setVotes((prev) => ({ ...prev, [currentParticipantId]: cardValue }));
-    } catch (error) {
-      console.error('Error submitting vote:', error);
-      alert('Failed to submit vote. Please try again.');
-    }
+    latestRequestedCardRef.current = cardValue;
+    maybeSubmit();
   };
 
   const revealVotes = async () => {

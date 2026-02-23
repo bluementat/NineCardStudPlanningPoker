@@ -27,6 +27,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   const [isRevealed, setIsRevealed] = useState(false);
   const [results, setResults] = useState<Results | null>(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [isHostOnly, setIsHostOnly] = useState(false);
 
   const cardValues = ['0', '1', '2', '3', '5', '8', '13', '21', '∞'];
 
@@ -35,6 +36,11 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       const session = await sessionService.getSession(pin);
       setSessionName(session.sessionName);
       setParticipants(session.participants || []);
+      
+      const currentParticipant = session.participants?.find(p => p.participantId === currentParticipantId);
+      if (currentParticipant) {
+        setIsHostOnly(currentParticipant.isHostOnly);
+      }
     } catch (error) {
       console.error('Error loading session:', error);
     }
@@ -94,6 +100,17 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
 
         signalrService.onNewRoundStarted(() => {
           handleNewRoundStarted();
+        });
+
+        signalrService.onHostModeChanged((data: { participantId: number, isHostOnly: boolean }) => {
+          setParticipants((prev) =>
+            prev.map((p) =>
+              p.participantId === data.participantId ? { ...p, isHostOnly: data.isHostOnly } : p
+            )
+          );
+          if (data.participantId === currentParticipantId) {
+            setIsHostOnly(data.isHostOnly);
+          }
         });
 
         signalrService.onSessionEnded(() => {
@@ -167,9 +184,22 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
     }
   };
 
+  const toggleHostMode = async () => {
+    if (!currentParticipantId) return;
+    const newMode = !isHostOnly;
+    try {
+      await sessionService.toggleHostMode(pin, currentParticipantId, newMode);
+      setIsHostOnly(newMode);
+    } catch (error) {
+      console.error('Error toggling host mode:', error);
+    }
+  };
+
   const hasVoted = (participantId: number) => {
     return votes[participantId] !== undefined;
   };
+
+  const visibleParticipants = participants.filter(p => !p.isHostOnly);
 
   return (
     <div className="voting-room">
@@ -179,9 +209,9 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       </div>
 
       <div className="participants-section">
-        <h2 className="section-title">Players at Table ({participants.length})</h2>
+        <h2 className="section-title">Players at Table ({visibleParticipants.length})</h2>
         <div className="participants-list">
-          {participants.map((participant) => (
+          {visibleParticipants.map((participant) => (
             <div
               key={participant.participantId}
               className={`participant-item ${hasVoted(participant.participantId) ? 'has-voted' : ''}`}
@@ -194,7 +224,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
         </div>
       </div>
 
-      {!isRevealed && (
+      {!isRevealed && !isHostOnly && (
         <div className="voting-section table-marking">
           <h2 className="section-title">Place Your Bet</h2>
           <div className="cards-container">
@@ -219,9 +249,15 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       {isHost && !isRevealed && (
         <div className="host-controls">
           <button
+            onClick={toggleHostMode}
+            className={`casino-button host-mode-button ${isHostOnly ? 'active' : ''}`}
+          >
+            {isHostOnly ? 'Enter Game' : 'Host Only Mode'}
+          </button>
+          <button
             onClick={revealVotes}
             className="casino-button reveal-button"
-            disabled={participants.length === 0}
+            disabled={visibleParticipants.length === 0}
           >
             Reveal Votes
           </button>

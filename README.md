@@ -10,6 +10,7 @@ A beautiful, casino-themed Planning Poker application built with .NET 8 backend 
 - **Animated Cards**: Flip animations and smooth transitions
 - **Session Management**: Create, join, and manage Planning Poker sessions
 - **Vote Reveal**: Animated reveal of all votes with statistics
+- **Host Mode**: Allow session creators to hide their presence while maintaining control
 
 ## Technology Stack
 
@@ -116,6 +117,11 @@ NineCardStudPokerPlanning/
    - The session creator can click "Reveal Votes" when all participants have voted
    - All votes are displayed with statistics (average, min, max)
 
+5. **Host Mode**:
+   - The session creator (host) can click "Host Only Mode" to hide their name from the table and statistics.
+   - This allows the host to present the table to a group while joining as a regular player under another name to keep their vote secret.
+   - Host controls (Reveal, End Session) remain available even in Host Mode.
+
 ## Azure Deployment
 
 You can deploy in either of two ways: as **Azure App Service + Static Web App**, or by **containerizing both projects and running them as Azure Container Apps**.
@@ -184,6 +190,7 @@ For correct per-IP limiting behind a proxy:
 - `POST /api/sessions/{pin}/votes` - Submit a vote
 - `POST /api/sessions/{pin}/reveal` - Reveal all votes
 - `GET /api/sessions/{pin}/results` - Get voting results
+- `POST /api/sessions/{pin}/participants/{participantId}/host-mode` - Toggle host-only mode
 
 ## SignalR Hub
 
@@ -192,11 +199,12 @@ For correct per-IP limiting behind a proxy:
   - `ParticipantJoined` - When a new participant joins
   - `VoteSubmitted` - When a vote is submitted
   - `VotesRevealed` - When votes are revealed
+  - `HostModeChanged` - When a host toggles their visibility
 
 ## In-Memory Database Schema
 
 - **Sessions**: SessionId, PIN, SessionName, CreatedAt, Status
-- **Participants**: ParticipantId, SessionId, Name, JoinedAt
+- **Participants**: ParticipantId, SessionId, Name, JoinedAt, IsHostOnly
 - **Votes**: VoteId, SessionId, ParticipantId, CardValue, VotedAt
 
 ## Development Notes

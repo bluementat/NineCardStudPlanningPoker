@@ -56,6 +56,10 @@ export const sessionService = {
 
   async endSession(pin: string): Promise<void> {
     await api.delete(`/sessions/${pin}`)
+  },
+
+  async toggleHostMode(pin: string, participantId: number, isHostOnly: boolean): Promise<void> {
+    await api.post(`/sessions/${pin}/participants/${participantId}/host-mode`, isHostOnly)
   }
 }
 

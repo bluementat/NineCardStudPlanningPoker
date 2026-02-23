@@ -68,4 +68,9 @@ public class PlanningPokerHub : Hub
     {
         await Clients.Group(pin).SendAsync("VotesRevealed", new { Pin = pin });
     }
+
+    public async Task HostModeChanged(string pin, int participantId, bool isHostOnly)
+    {
+        await Clients.Group(pin).SendAsync("HostModeChanged", new { Pin = pin, ParticipantId = participantId, IsHostOnly = isHostOnly });
+    }
 }

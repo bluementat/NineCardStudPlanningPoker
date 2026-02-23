@@ -97,6 +97,12 @@ class SignalRService {
     }
   }
 
+  onHostModeChanged(callback: (data: any) => void): void {
+    if (this.connection) {
+      this.connection.on('HostModeChanged', callback)
+    }
+  }
+
   off(eventName: string): void {
     if (this.connection) {
       this.connection.off(eventName)

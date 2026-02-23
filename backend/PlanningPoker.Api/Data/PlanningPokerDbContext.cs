@@ -43,6 +43,8 @@ public class PlanningPokerDbContext : DbContext
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(100);
+            entity.Property(e => e.IsHostOnly)
+                .HasDefaultValue(false);
             entity.HasOne(e => e.Session)
                 .WithMany(s => s.Participants)
                 .HasForeignKey(e => e.SessionId)

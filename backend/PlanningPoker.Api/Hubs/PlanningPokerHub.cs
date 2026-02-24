@@ -30,7 +30,10 @@ public class PlanningPokerHub : Hub
             var hasOtherConnections = ConnectionToParticipant.Values.Any(v => v.Pin == mapping.Pin && v.ParticipantId == mapping.ParticipantId);
             if (!hasOtherConnections)
             {
-                var session = await _context.Sessions.FirstOrDefaultAsync(s => s.PIN == mapping.Pin);
+                var session = await _context.Sessions
+                    .Include(s => s.Participants)
+                    .Include(s => s.Votes)
+                    .FirstOrDefaultAsync(s => s.PIN == mapping.Pin);
                 if (session != null)
                 {
                     var participant = await _context.Participants
@@ -38,14 +41,24 @@ public class PlanningPokerHub : Hub
 
                     if (participant != null)
                     {
-                        _context.Participants.Remove(participant);
-                        await _context.SaveChangesAsync();
-                        await Clients.Group(mapping.Pin).SendAsync("ParticipantLeft", new ParticipantDto
+                        var host = session.Participants.OrderBy(p => p.JoinedAt).FirstOrDefault();
+                        if (host != null && participant.ParticipantId == host.ParticipantId)
                         {
-                            ParticipantId = participant.ParticipantId,
-                            Name = participant.Name,
-                            JoinedAt = participant.JoinedAt
-                        });
+                            await Clients.Group(mapping.Pin).SendAsync("SessionEnded", new { Pin = mapping.Pin });
+                            _context.Sessions.Remove(session);
+                            await _context.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            _context.Participants.Remove(participant);
+                            await _context.SaveChangesAsync();
+                            await Clients.Group(mapping.Pin).SendAsync("ParticipantLeft", new ParticipantDto
+                            {
+                                ParticipantId = participant.ParticipantId,
+                                Name = participant.Name,
+                                JoinedAt = participant.JoinedAt
+                            });
+                        }
                     }
                 }
             }

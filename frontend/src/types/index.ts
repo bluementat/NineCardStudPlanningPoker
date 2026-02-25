@@ -34,6 +34,7 @@ export interface Results {
 
 export interface CreateSessionRequest {
   sessionName: string;
+  hostName: string;
 }
 
 export interface JoinSessionRequest {

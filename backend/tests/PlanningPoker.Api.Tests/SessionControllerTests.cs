@@ -39,12 +39,13 @@ public class SessionControllerTests
     }
 
     [Fact]
-    public async Task CreateSession_ValidRequest_ReturnsOkWithSessionDto()
+    public async Task CreateSession_ValidRequest_ReturnsOkWithSessionDtoAndHostParticipant()
     {
         // Arrange
         var pin = "123456";
         var sessionName = "Test Session";
-        var request = new CreateSessionRequest { SessionName = sessionName };
+        var hostName = "Host User";
+        var request = new CreateSessionRequest { SessionName = sessionName, HostName = hostName };
 
         _pinGeneratorMock.Setup(p => p.GenerateUniquePinAsync()).ReturnsAsync(pin);
 
@@ -59,10 +60,32 @@ public class SessionControllerTests
         Assert.Equal(sessionName, sessionDto.SessionName);
         Assert.Equal("Active", sessionDto.Status);
         Assert.True(sessionDto.SessionId > 0);
+        Assert.NotNull(sessionDto.Participants);
+        Assert.Single(sessionDto.Participants);
+        Assert.Equal(hostName, sessionDto.Participants[0].Name);
+        Assert.True(sessionDto.Participants[0].ParticipantId > 0);
 
         var session = await _context.Sessions.FirstOrDefaultAsync(s => s.PIN == pin);
         Assert.NotNull(session);
         Assert.Equal(sessionName, session.SessionName);
+
+        var hostParticipant = await _context.Participants.FirstOrDefaultAsync(p => p.SessionId == session.SessionId);
+        Assert.NotNull(hostParticipant);
+        Assert.Equal(hostName, hostParticipant.Name);
+    }
+
+    [Fact]
+    public async Task CreateSession_MissingHostName_ReturnsBadRequest()
+    {
+        // Arrange
+        var request = new CreateSessionRequest { SessionName = "Test Session", HostName = "   " };
+
+        // Act
+        var result = await _controller.CreateSession(request);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("Host name is required", badRequestResult.Value);
     }
 
     [Fact]
@@ -167,7 +190,7 @@ public class SessionControllerTests
     [Fact]
     public async Task JoinSession_ValidRequest_ReturnsOkWithParticipantDto()
     {
-        // Arrange
+        // Arrange: session with host already present (host joined at creation)
         var pin = "123456";
         var session = new Session
         {
@@ -177,6 +200,16 @@ public class SessionControllerTests
             Status = SessionStatus.Active
         };
         _context.Sessions.Add(session);
+        await _context.SaveChangesAsync();
+
+        var hostParticipant = new Participant
+        {
+            SessionId = session.SessionId,
+            Name = "Host User",
+            JoinedAt = DateTime.UtcNow,
+            IsHostOnly = false
+        };
+        _context.Participants.Add(hostParticipant);
         await _context.SaveChangesAsync();
 
         var request = new JoinSessionRequest { Name = "John Doe" };
@@ -197,8 +230,9 @@ public class SessionControllerTests
             c => c.SendCoreAsync("ParticipantJoined", It.IsAny<object[]>(), default),
             Times.Once);
 
-        var participant = await _context.Participants.FirstOrDefaultAsync(p => p.Name == "John Doe");
+        var participant = await _context.Participants.FirstOrDefaultAsync(p => p.SessionId == session.SessionId && p.Name == "John Doe");
         Assert.NotNull(participant);
+        Assert.Equal(2, await _context.Participants.CountAsync(p => p.SessionId == session.SessionId));
     }
 
     [Fact]

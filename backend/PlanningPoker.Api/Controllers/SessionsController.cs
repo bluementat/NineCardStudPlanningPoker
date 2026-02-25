@@ -32,6 +32,11 @@ public class SessionsController : ControllerBase
     [EnableRateLimiting("CreateSessionPolicy")]
     public async Task<ActionResult<SessionDto>> CreateSession([FromBody] CreateSessionRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.HostName))
+        {
+            return BadRequest("Host name is required");
+        }
+
         var pin = await _pinGenerator.GenerateUniquePinAsync();
         
         var session = new Session
@@ -45,13 +50,34 @@ public class SessionsController : ControllerBase
         _context.Sessions.Add(session);
         await _context.SaveChangesAsync();
 
+        var hostParticipant = new Participant
+        {
+            SessionId = session.SessionId,
+            Name = request.HostName.Trim(),
+            JoinedAt = DateTime.UtcNow,
+            IsHostOnly = false
+        };
+
+        _context.Participants.Add(hostParticipant);
+        await _context.SaveChangesAsync();
+
         return Ok(new SessionDto
         {
             SessionId = session.SessionId,
             PIN = session.PIN,
             SessionName = session.SessionName,
             CreatedAt = session.CreatedAt,
-            Status = session.Status.ToString()
+            Status = session.Status.ToString(),
+            Participants = new List<ParticipantDto>
+            {
+                new()
+                {
+                    ParticipantId = hostParticipant.ParticipantId,
+                    Name = hostParticipant.Name,
+                    JoinedAt = hostParticipant.JoinedAt,
+                    IsHostOnly = hostParticipant.IsHostOnly
+                }
+            }
         });
     }
 

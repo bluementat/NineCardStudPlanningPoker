@@ -27,6 +27,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   const [isRevealed, setIsRevealed] = useState(false);
   const [results, setResults] = useState<Results | null>(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isHostOnly, setIsHostOnly] = useState(false);
 
   const latestRequestedCardRef = useRef<string | null>(null);
@@ -309,6 +310,17 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
         />
       )}
 
+      {!isHost && (
+        <div className="participant-controls">
+          <button
+            onClick={() => setShowLeaveConfirm(true)}
+            className="casino-button leave-game-button"
+          >
+            Leave Game
+          </button>
+        </div>
+      )}
+
       {showEndConfirm && (
         <div className="modal-overlay">
           <div className="casino-modal">
@@ -328,6 +340,34 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
                 className="casino-button modal-button end-session-button"
               >
                 END GAME
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLeaveConfirm && (
+        <div className="modal-overlay">
+          <div className="casino-modal">
+            <h2 className="modal-title">Leave Game?</h2>
+            <p className="modal-content">
+              Are you sure you want to leave? You will return to the lobby.
+            </p>
+            <div className="modal-actions">
+              <button 
+                onClick={() => setShowLeaveConfirm(false)} 
+                className="casino-button modal-button cancel"
+              >
+                STAY
+              </button>
+              <button 
+                onClick={() => {
+                  setShowLeaveConfirm(false);
+                  navigate('/');
+                }} 
+                className="casino-button modal-button leave-game-button"
+              >
+                LEAVE
               </button>
             </div>
           </div>

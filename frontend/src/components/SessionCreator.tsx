@@ -5,7 +5,7 @@ import { Session } from '../types';
 
 const SessionCreator: React.FC = () => {
   const [sessionName, setSessionName] = useState('');
-  const [participantName, setParticipantName] = useState('');
+  const [hostName, setHostName] = useState('');
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -13,11 +13,11 @@ const SessionCreator: React.FC = () => {
 
   const createSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sessionName.trim()) return;
+    if (!sessionName.trim() || !hostName.trim()) return;
 
     setLoading(true);
     try {
-      const response = await sessionService.createSession(sessionName);
+      const response = await sessionService.createSession(sessionName, hostName);
       setSession(response);
     } catch (error) {
       console.error('Error creating session:', error);
@@ -35,19 +35,10 @@ const SessionCreator: React.FC = () => {
     }
   };
 
-  const joinAndGoSession = async () => {
-    if (!session?.pin || !participantName.trim()) return;
-
-    setLoading(true);
-    try {
-      const participant = await sessionService.joinSession(session.pin, participantName);
-      navigate(`/session/${session.pin}?participantId=${participant.participantId}&name=${encodeURIComponent(participantName)}`);
-    } catch (error) {
-      console.error('Error joining session:', error);
-      alert('Failed to join session. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const goToTable = () => {
+    if (!session?.pin || !session.participants?.length) return;
+    const host = session.participants[0];
+    navigate(`/session/${session.pin}?participantId=${host.participantId}&name=${encodeURIComponent(host.name)}`);
   };
 
   return (
@@ -69,6 +60,19 @@ const SessionCreator: React.FC = () => {
                 required
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="hostName">YOUR NAME</label>
+              <input
+                id="hostName"
+                value={hostName}
+                onChange={(e) => setHostName(e.target.value.slice(0, 30))}
+                type="text"
+                className="casino-input"
+                placeholder="e.g. Maverick"
+                maxLength={30}
+                required
+              />
+            </div>
             <button type="submit" className="casino-button" disabled={loading}>
               {loading ? 'PREPARING...' : 'OPEN TABLE'}
             </button>
@@ -80,28 +84,13 @@ const SessionCreator: React.FC = () => {
             <div className="pin-display">{session.pin}</div>
             <hr className="pin-section-divider" />
 
-            <div className="form-group" style={{ marginBottom: '25px' }}>
-              <label htmlFor="participantName">ENTER YOUR NAME</label>
-              <input
-                id="participantName"
-                value={participantName}
-                onChange={(e) => setParticipantName(e.target.value.slice(0, 30))}
-                type="text"
-                className="casino-input"
-                placeholder="e.g. Maverick"
-                maxLength={30}
-                required
-              />
-            </div>
-
             <div className="button-group">
               <button onClick={copyPin} className="casino-button">COPY PIN</button>
               <button
-                onClick={joinAndGoSession}
+                onClick={goToTable}
                 className="casino-button secondary"
-                disabled={loading || !participantName.trim()}
               >
-                {loading ? 'SITTING DOWN...' : 'JOIN TABLE'}
+                GO TO TABLE
               </button>
             </div>
           </div>

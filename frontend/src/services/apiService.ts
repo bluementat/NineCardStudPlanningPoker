@@ -19,8 +19,8 @@ api.interceptors.response.use(
 );
 
 export const sessionService = {
-  async createSession(sessionName: string): Promise<Session> {
-    const response = await api.post<Session>('/sessions', { sessionName })
+  async createSession(sessionName: string, hostName: string): Promise<Session> {
+    const response = await api.post<Session>('/sessions', { sessionName, hostName })
     return response.data
   },
 

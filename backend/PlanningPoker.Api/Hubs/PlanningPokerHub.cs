@@ -69,7 +69,46 @@ public class PlanningPokerHub : Hub
 
     public async Task LeaveSession(string pin)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, pin);
+        if (ConnectionToParticipant.TryGetValue(Context.ConnectionId, out var mapping) && mapping.Pin == pin)
+        {
+            ConnectionToParticipant.TryRemove(Context.ConnectionId, out _);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, pin);
+
+            var session = await _context.Sessions
+                .Include(s => s.Participants)
+                .Include(s => s.Votes)
+                .FirstOrDefaultAsync(s => s.PIN == pin);
+            if (session != null)
+            {
+                var participant = await _context.Participants
+                    .FirstOrDefaultAsync(p => p.ParticipantId == mapping.ParticipantId && p.SessionId == session.SessionId);
+                if (participant != null)
+                {
+                    var host = session.Participants.OrderBy(p => p.JoinedAt).FirstOrDefault();
+                    if (host != null && participant.ParticipantId == host.ParticipantId)
+                    {
+                        await Clients.Group(pin).SendAsync("SessionEnded", new { Pin = pin });
+                        _context.Sessions.Remove(session);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        _context.Participants.Remove(participant);
+                        await _context.SaveChangesAsync();
+                        await Clients.Group(pin).SendAsync("ParticipantLeft", new ParticipantDto
+                        {
+                            ParticipantId = participant.ParticipantId,
+                            Name = participant.Name,
+                            JoinedAt = participant.JoinedAt
+                        });
+                    }
+                }
+            }
+        }
+        else
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, pin);
+        }
     }
 
     public async Task VoteSubmitted(string pin, int participantId, string cardValue)

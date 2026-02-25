@@ -872,6 +872,23 @@ body {
   margin-top: 30px;
 }
 
+.participant-controls {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.leave-game-button {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-color: #666;
+  color: #ccc;
+}
+
+.leave-game-button:hover {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  border-color: #888;
+  color: #fff;
+}
+
 .reveal-button {
   font-size: 20px;
   padding: 15px 30px;

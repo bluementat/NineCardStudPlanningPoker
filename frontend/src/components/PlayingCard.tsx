@@ -39,8 +39,12 @@ const PlayingCard: React.FC<PlayingCardProps> = ({
 
   return (
     <div
+      role="button"
+      aria-label={`Select card ${value}`}
+      tabIndex={disabled ? -1 : 0}
       className={`playing-card ${isSelected ? 'selected' : ''} ${isFlipped ? 'flipped' : ''} ${isRevealed ? 'revealed' : ''} ${disabled ? 'disabled' : ''}`}
       onClick={handleClick}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isSelected && onSelect) onSelect(value); }}
     >
       <div className="card-inner">
         <div className={`card-front ${suitColor}`}>

@@ -21,7 +21,7 @@ builder.Services.AddRateLimiter(options =>
         var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
         {
-            PermitLimit = 50,
+            PermitLimit = 100,
             Window = TimeSpan.FromSeconds(60)
         });
     });
@@ -31,7 +31,7 @@ builder.Services.AddRateLimiter(options =>
         var clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
         {
-            PermitLimit = 100,
+            PermitLimit = 200,
             Window = TimeSpan.FromSeconds(1)
         });
     });

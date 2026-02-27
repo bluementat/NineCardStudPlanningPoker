@@ -36,9 +36,13 @@ const Session: React.FC = () => {
       }
 
       setLoading(false);
-    } catch (err) {
-      console.error('Error initializing session:', err);
-      setError('Session not found or could not be loaded.');
+    } catch (err: any) {
+      console.error(`Error initializing session for PIN: ${pin}`, err);
+      if (err.response?.status === 404) {
+        setError('Session not found. It may have expired or been ended.');
+      } else {
+        setError('Session could not be loaded. Please check your connection.');
+      }
       setLoading(false);
     }
   }, [pin, location.search]);

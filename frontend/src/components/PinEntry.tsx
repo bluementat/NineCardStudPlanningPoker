@@ -39,7 +39,7 @@ const PinEntry: React.FC<PinEntryProps> = ({ initialPin = '' }) => {
       // Navigate to session
       navigate(`/session/${pin}?participantId=${participant.participantId}&name=${encodeURIComponent(name)}`);
     } catch (err: any) {
-      console.error('Error joining session:', err);
+      console.error(`Failed to join session. PIN: ${pin}, Name: ${name}`, err);
       if (err.response?.status === 404) {
         setError('Session not found. Please check the PIN.');
       } else {

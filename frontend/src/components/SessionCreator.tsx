@@ -19,8 +19,8 @@ const SessionCreator: React.FC = () => {
     try {
       const response = await sessionService.createSession(sessionName, hostName);
       setSession(response);
-    } catch (error) {
-      console.error('Error creating session:', error);
+    } catch (error: any) {
+      console.error(`Failed to create session. Name: ${sessionName}, Host: ${hostName}`, error);
       alert('Failed to create session. Please try again.');
     } finally {
       setLoading(false);

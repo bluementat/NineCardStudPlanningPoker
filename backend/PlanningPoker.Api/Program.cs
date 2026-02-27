@@ -38,6 +38,12 @@ builder.Services.AddRateLimiter(options =>
 
     options.OnRejected = async (context, token) =>
     {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+        var clientIp = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var endpoint = context.HttpContext.Request.Path;
+        
+        logger.LogWarning("Rate limit exceeded for IP: {ClientIp} on endpoint: {Endpoint}", clientIp, endpoint);
+
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", token);
     };
@@ -46,7 +52,7 @@ builder.Services.AddRateLimiter(options =>
 // Configure CORS
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>();
+    .Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVueApp", policy =>

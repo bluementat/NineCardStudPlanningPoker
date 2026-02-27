@@ -11,7 +11,18 @@ const api = axios.create({
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 429) {
+    const status = error.response?.status;
+    const url = error.config?.url;
+    const method = error.config?.method?.toUpperCase();
+    const message = error.message;
+
+    console.error(`API Error: ${method} ${url} - Status: ${status} - Message: ${message}`, {
+      data: error.response?.data,
+      headers: error.response?.headers,
+      config: error.config
+    });
+
+    if (status === 429) {
       alert("You are doing that too much. Please wait a moment before trying again.");
     }
     return Promise.reject(error);

@@ -167,7 +167,7 @@ test('12 participants: host, 4 join, host goes host-only, 7 more join, wait 5s, 
   const pin = (await hostPage.getByTestId('session-pin-display').textContent())?.trim();
   expect(pin).toBeTruthy();
   await hostPage.getByTestId('session-go-to-table').click();
-  await expect(hostPage.getByTestId('voting-room')).toBeVisible({ timeout: 45000 });
+  await expect(hostPage.getByTestId('voting-room')).toBeVisible({ timeout: 30000 });
 
   // --- 4 join ---
   const firstJoinContexts = await Promise.all(Array.from({ length: 4 }, () => browser.newContext({ baseURL })));
@@ -253,6 +253,144 @@ test('create session, play one round (vote + reveal), then end session', async (
   await expect(page.getByTestId('modal-end-session')).toBeVisible();
   await page.getByTestId('modal-end-session-confirm').click();
   await expect(page.getByTestId('modal-end-session')).not.toBeVisible({ timeout: 10000 });
+});
+
+test('create session, join, select card, reveal, pause 3s, then leave session', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByTestId('home')).toBeVisible();
+  await page.getByTestId('home-create-table').click();
+
+  await expect(page.getByTestId('session-creator')).toBeVisible();
+  await page.getByTestId('session-name-input').fill('E2E Reveal Then Leave');
+  await page.getByTestId('host-name-input').fill('E2E Host');
+  await page.getByTestId('session-creator-open-table').click();
+
+  await expect(page.getByTestId('session-creator-pin-section')).toBeVisible({ timeout: 15000 });
+  await page.getByTestId('session-go-to-table').click();
+
+  await expect(page.getByTestId('voting-room')).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId('reveal-votes-btn')).toBeVisible();
+
+  await page.getByTestId('card-5').click();
+  await page.getByTestId('reveal-votes-btn').click();
+
+  await expect(page.getByTestId('results-display')).toBeVisible({ timeout: 10000 });
+  await page.waitForTimeout(3000);
+
+  await page.getByTestId('results-end-session-btn').click();
+  await expect(page.getByTestId('modal-end-session')).toBeVisible({ timeout: 5000 });
+  await page.getByTestId('modal-end-session-confirm').click();
+  await expect(page.getByTestId('modal-end-session')).not.toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId('home')).toBeVisible({ timeout: 15000 });
+});
+
+test('host game, wait for human to join from another computer and pick a card, then reveal, pause 3s, end session', async ({ browser }) => {
+  test.setTimeout(300000); // 5 min: time for you to join from another device and pick a card
+  const baseURL = process.env.BASE_URL ?? 'https://ncsplanningpoker-frontend.gentleocean-1639b4e1.centralus.azurecontainerapps.io';
+
+  // --- Host: create session and go to table ---
+  const hostContext = await browser.newContext({ baseURL });
+  const hostPage = await hostContext.newPage();
+  await hostPage.goto('/');
+  await hostPage.getByTestId('home-create-table').click();
+  await hostPage.getByTestId('session-name-input').fill('E2E Human Second Player');
+  await hostPage.getByTestId('host-name-input').fill('Host');
+  await hostPage.getByTestId('session-creator-open-table').click();
+  await expect(hostPage.getByTestId('session-creator-pin-section')).toBeVisible({ timeout: 15000 });
+  const pin = (await hostPage.getByTestId('session-pin-display').textContent())?.trim();
+  expect(pin).toBeTruthy();
+  await hostPage.getByTestId('session-go-to-table').click();
+  await expect(hostPage.getByTestId('voting-room')).toBeVisible({ timeout: 30000 });
+
+  // --- Log join info so you can join from another computer ---
+  const joinUrl = `${baseURL.replace(/\/$/, '')}/?pin=${pin}`;
+  console.log('\n--- Join from your other computer ---');
+  console.log('PIN:', pin);
+  console.log('URL:', joinUrl);
+  console.log('------------------------------------\n');
+
+  // --- Wait for you to join (Players at Table (2)) ---
+  await expect(hostPage.getByTestId('voting-participants-section')).toContainText('(2)', { timeout: 240000 });
+
+  // --- Wait for you to pick a card (your icon shows voted / READY) ---
+  await hostPage.locator('.participant-item.has-voted').first().waitFor({ state: 'visible', timeout: 120000 });
+
+  // --- Host: choose a card and reveal all ---
+  await hostPage.getByTestId('card-8').click();
+  await hostPage.getByTestId('reveal-votes-btn').click();
+
+  await expect(hostPage.getByTestId('results-display')).toBeVisible({ timeout: 10000 });
+  await hostPage.waitForTimeout(3000);
+
+  await hostPage.getByTestId('results-end-session-btn').click();
+  await expect(hostPage.getByTestId('modal-end-session')).toBeVisible({ timeout: 5000 });
+  await hostPage.getByTestId('modal-end-session-confirm').click();
+  await expect(hostPage.getByTestId('modal-end-session')).not.toBeVisible({ timeout: 10000 });
+  await expect(hostPage.getByTestId('home')).toBeVisible({ timeout: 15000 });
+
+  await hostContext.close();
+});
+
+test('host game, automated player joins with PIN, wait for human to join and pick a card, then both automated players pick a card, reveal, pause 3s, end session', async ({ browser }) => {
+  test.setTimeout(300000); // 5 min: time for you to join from another device and pick a card
+  const baseURL = process.env.BASE_URL ?? 'https://ncsplanningpoker-frontend.gentleocean-1639b4e1.centralus.azurecontainerapps.io';
+
+  // --- Host: create session and go to table ---
+  const hostContext = await browser.newContext({ baseURL });
+  const hostPage = await hostContext.newPage();
+  await hostPage.goto('/');
+  await hostPage.getByTestId('home-create-table').click();
+  await hostPage.getByTestId('session-name-input').fill('E2E Host + Auto + Human');
+  await hostPage.getByTestId('host-name-input').fill('Host');
+  await hostPage.getByTestId('session-creator-open-table').click();
+  await expect(hostPage.getByTestId('session-creator-pin-section')).toBeVisible({ timeout: 15000 });
+  const pin = (await hostPage.getByTestId('session-pin-display').textContent())?.trim();
+  expect(pin).toBeTruthy();
+  await hostPage.getByTestId('session-go-to-table').click();
+  await expect(hostPage.getByTestId('voting-room')).toBeVisible({ timeout: 30000 });
+
+  // --- Second automated player: join with PIN (another browser tab) ---
+  const playerContext = await browser.newContext({ baseURL });
+  const playerPage = await playerContext.newPage();
+  await playerPage.goto(`/?pin=${pin}`);
+  await expect(playerPage.getByTestId('pin-entry')).toBeVisible({ timeout: 10000 });
+  await playerPage.getByTestId('pin-input').fill(pin!);
+  await playerPage.getByTestId('pin-entry-name-input').fill('AutoPlayer');
+  await playerPage.getByTestId('pin-entry-join-btn').click();
+  await expect(playerPage.getByTestId('voting-room')).toBeVisible({ timeout: 25000 });
+
+  // --- Log join info so you can join from your computer ---
+  const joinUrl = `${baseURL.replace(/\/$/, '')}/?pin=${pin}`;
+  console.log('\n--- Join from your other computer ---');
+  console.log('PIN:', pin);
+  console.log('URL:', joinUrl);
+  console.log('------------------------------------\n');
+
+  // --- Wait for you to join (Players at Table (3)) ---
+  await expect(hostPage.getByTestId('voting-participants-section')).toContainText('(3)', { timeout: 240000 });
+
+  // --- Wait for you to pick a card (your icon shows voted / READY) ---
+  await hostPage.locator('.participant-item.has-voted').first().waitFor({ state: 'visible', timeout: 120000 });
+
+  // --- Both automated players pick a card ---
+  await hostPage.getByTestId('card-8').click();
+  await playerPage.getByTestId('card-5').click();
+
+  // --- Host: reveal all cards ---
+  await hostPage.getByTestId('reveal-votes-btn').click();
+
+  await expect(hostPage.getByTestId('results-display')).toBeVisible({ timeout: 10000 });
+  await hostPage.waitForTimeout(3000);
+
+  await hostPage.getByTestId('results-end-session-btn').click();
+  await expect(hostPage.getByTestId('modal-end-session')).toBeVisible({ timeout: 5000 });
+  await hostPage.getByTestId('modal-end-session-confirm').click();
+  await expect(hostPage.getByTestId('modal-end-session')).not.toBeVisible({ timeout: 10000 });
+  await expect(hostPage.getByTestId('home')).toBeVisible({ timeout: 15000 });
+
+  await hostContext.close();
+  await playerContext.close();
 });
 
 test('create session, get PIN, join table, end session and confirm', async ({ page }) => {

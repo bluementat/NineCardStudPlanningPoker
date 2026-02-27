@@ -17,15 +17,18 @@ public class SessionsController : ControllerBase
     private readonly PlanningPokerDbContext _context;
     private readonly IPinGenerator _pinGenerator;
     private readonly IHubContext<PlanningPokerHub> _hubContext;
+    private readonly ILogger<SessionsController> _logger;
 
     public SessionsController(
         PlanningPokerDbContext context,
         IPinGenerator pinGenerator,
-        IHubContext<PlanningPokerHub> hubContext)
+        IHubContext<PlanningPokerHub> hubContext,
+        ILogger<SessionsController> logger)
     {
         _context = context;
         _pinGenerator = pinGenerator;
         _hubContext = hubContext;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -38,6 +41,7 @@ public class SessionsController : ControllerBase
         }
 
         var pin = await _pinGenerator.GenerateUniquePinAsync();
+        _logger.LogInformation("Creating new session. PIN: {PIN}, Host: {HostName}, SessionName: {SessionName}", pin, request.HostName, request.SessionName);
         
         var session = new Session
         {
@@ -128,13 +132,17 @@ public class SessionsController : ControllerBase
         var session = await _context.Sessions.FirstOrDefaultAsync(s => s.PIN == pin);
         if (session == null)
         {
+            _logger.LogWarning("Join attempt failed. Session not found for PIN: {PIN}", pin);
             return NotFound("Session not found");
         }
 
         if (session.Status != SessionStatus.Active)
         {
+            _logger.LogWarning("Join attempt failed. Session is not active. PIN: {PIN}, Status: {Status}", pin, session.Status);
             return BadRequest("Session is not active");
         }
+
+        _logger.LogInformation("Participant joining session. PIN: {PIN}, Name: {Name}", pin, request.Name);
 
         var participant = new Participant
         {
@@ -277,8 +285,11 @@ public class SessionsController : ControllerBase
 
         if (session == null)
         {
+            _logger.LogWarning("End session attempt failed. Session not found for PIN: {PIN}", pin);
             return NotFound("Session not found");
         }
+
+        _logger.LogInformation("Ending session. PIN: {PIN}", pin);
 
         // Notify all participants that the session has ended
         await _hubContext.Clients.Group(pin).SendAsync("SessionEnded", new { Pin = pin });

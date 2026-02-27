@@ -232,15 +232,15 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
   const visibleParticipants = participants.filter(p => !p.isHostOnly);
 
   return (
-    <div className="voting-room">
-      <div className="session-header table-marking">
+    <div className="voting-room" data-testid="voting-room">
+      <div className="session-header table-marking" data-testid="voting-session-header">
         <h1 className="session-name">{sessionName}</h1>
         <div className="session-pin">SESSION ID: {pin}</div>
       </div>
 
-      <div className="participants-section">
+      <div className="participants-section" data-testid="voting-participants-section">
         <h2 className="section-title">Players at Table ({visibleParticipants.length})</h2>
-        <div className="participants-list">
+        <div className="participants-list" data-testid="voting-participants-list">
           {visibleParticipants.map((participant) => (
             <div
               key={participant.participantId}
@@ -255,9 +255,9 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       </div>
 
       {!isRevealed && !isHostOnly && (
-        <div className="voting-section table-marking">
+        <div className="voting-section table-marking" data-testid="voting-section">
           <h2 className="section-title">Place Your Bet</h2>
-          <div className="cards-container">
+          <div className="cards-container" data-testid="voting-cards-container">
             {cardValues.map((cardValue) => (
               <PlayingCard
                 key={cardValue}
@@ -277,10 +277,11 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       )}
 
       {isHost && !isRevealed && (
-        <div className="host-controls">
+        <div className="host-controls" data-testid="voting-host-controls">
           <button
             onClick={toggleHostMode}
             className={`casino-button host-mode-button ${isHostOnly ? 'active' : ''}`}
+            data-testid="voting-host-mode-btn"
           >
             {isHostOnly ? 'Enter Game' : 'Host Only Mode'}
           </button>
@@ -288,12 +289,14 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
             onClick={revealVotes}
             className="casino-button reveal-button"
             disabled={visibleParticipants.length === 0}
+            data-testid="reveal-votes-btn"
           >
             Reveal Votes
           </button>
           <button
             onClick={endSession}
             className="casino-button end-session-button"
+            data-testid="voting-end-session-btn"
           >
             End Session
           </button>
@@ -315,6 +318,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
           <button
             onClick={() => setShowLeaveConfirm(true)}
             className="casino-button leave-game-button"
+            data-testid="leave-game-btn"
           >
             Leave Game
           </button>
@@ -322,9 +326,9 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       )}
 
       {showEndConfirm && (
-        <div className="modal-overlay">
-          <div className="casino-modal">
-            <h2 className="modal-title">Close Table?</h2>
+        <div className="modal-overlay" data-testid="modal-end-session-overlay">
+          <div className="casino-modal" role="dialog" aria-labelledby="modal-end-session-title" aria-modal="true" data-testid="modal-end-session">
+            <h2 id="modal-end-session-title" className="modal-title">Close Table?</h2>
             <p className="modal-content">
               Are you sure you want to end the session? This will clear all data and return everyone to the lobby.
             </p>
@@ -332,12 +336,16 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
               <button 
                 onClick={() => setShowEndConfirm(false)} 
                 className="casino-button modal-button cancel"
+                aria-label="Stay in game"
+                data-testid="modal-end-session-stay"
               >
                 STAY
               </button>
               <button 
                 onClick={confirmEndSession} 
                 className="casino-button modal-button end-session-button"
+                aria-label="End game"
+                data-testid="modal-end-session-confirm"
               >
                 END GAME
               </button>
@@ -347,9 +355,9 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       )}
 
       {showLeaveConfirm && (
-        <div className="modal-overlay">
-          <div className="casino-modal">
-            <h2 className="modal-title">Leave Game?</h2>
+        <div className="modal-overlay" data-testid="modal-leave-overlay">
+          <div className="casino-modal" role="dialog" aria-labelledby="modal-leave-title" aria-modal="true" data-testid="modal-leave">
+            <h2 id="modal-leave-title" className="modal-title">Leave Game?</h2>
             <p className="modal-content">
               Are you sure you want to leave? You will return to the lobby.
             </p>
@@ -357,6 +365,8 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
               <button 
                 onClick={() => setShowLeaveConfirm(false)} 
                 className="casino-button modal-button cancel"
+                aria-label="Stay in game"
+                data-testid="modal-leave-stay"
               >
                 STAY
               </button>
@@ -366,6 +376,8 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
                   navigate('/');
                 }} 
                 className="casino-button modal-button leave-game-button"
+                aria-label="Leave game"
+                data-testid="modal-leave-confirm"
               >
                 LEAVE
               </button>

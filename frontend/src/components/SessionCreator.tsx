@@ -42,11 +42,11 @@ const SessionCreator: React.FC = () => {
   };
 
   return (
-    <div className="session-creator fade-in">
+    <div className="session-creator fade-in" data-testid="session-creator">
       <div className="casino-card table-marking">
         <h1 className="casino-title">HOST A NEW TABLE</h1>
         {!session ? (
-          <form onSubmit={createSession} className="session-form">
+          <form onSubmit={createSession} className="session-form" data-testid="session-creator-form">
             <div className="form-group">
               <label htmlFor="sessionName">TABLE NAME</label>
               <input
@@ -58,6 +58,7 @@ const SessionCreator: React.FC = () => {
                 placeholder="e.g. Sprint 42 Planning"
                 maxLength={30}
                 required
+                data-testid="session-name-input"
               />
             </div>
             <div className="form-group">
@@ -71,24 +72,26 @@ const SessionCreator: React.FC = () => {
                 placeholder="e.g. Maverick"
                 maxLength={30}
                 required
+                data-testid="host-name-input"
               />
             </div>
-            <button type="submit" className="casino-button" disabled={loading}>
+            <button type="submit" className="casino-button" disabled={loading} data-testid="session-creator-open-table">
               {loading ? 'PREPARING...' : 'OPEN TABLE'}
             </button>
           </form>
         ) : (
-          <div className="pin-section fade-in">
+          <div className="pin-section fade-in" data-testid="session-creator-pin-section">
             <h2>YOUR TABLE PIN</h2>
             <p className="pin-instruction">SHARE THIS PIN WITH YOUR TEAM</p>
-            <div className="pin-display">{session.pin}</div>
+            <div className="pin-display" data-testid="session-pin-display">{session.pin}</div>
             <hr className="pin-section-divider" />
 
             <div className="button-group">
-              <button onClick={copyPin} className="casino-button">COPY PIN</button>
+              <button onClick={copyPin} className="casino-button" data-testid="session-copy-pin">COPY PIN</button>
               <button
                 onClick={goToTable}
                 className="casino-button secondary"
+                data-testid="session-go-to-table"
               >
                 GO TO TABLE
               </button>
@@ -97,7 +100,7 @@ const SessionCreator: React.FC = () => {
         )}
       </div>
       {showToast && (
-        <div className="toast-container">
+        <div className="toast-container" data-testid="session-toast">
           <div className="casino-toast">
             PIN COPIED TO CLIPBOARD
           </div>

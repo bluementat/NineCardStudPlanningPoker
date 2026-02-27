@@ -21,44 +21,44 @@ const Home: React.FC = () => {
   }, [location]);
 
   return (
-    <div className={`home ${showCreator || joining ? 'bg-area' : 'bg-lobby'}`}>
-      <div className="casino-container">
+    <div className={`home ${showCreator || joining ? 'bg-area' : 'bg-lobby'}`} data-testid="home">
+      <div className="casino-container" data-testid="home-container">
         <div className={`welcome-section ${showCreator || joining ? 'compact' : ''}`}>
-          <img src={logo} alt="Nine Card Stud Premium Planning Poker" className="main-logo" />
+          <img src={logo} alt="Nine Card Stud Premium Planning Poker" className="main-logo" data-testid="home-logo" />
         </div>
 
         {!showCreator && !joining ? (
           <>
-            <div className="action-cards action-cards-desktop">
-              <div className="action-card casino-card table-marking">
+            <div className="action-cards action-cards-desktop" data-testid="home-action-cards-desktop">
+              <div className="action-card casino-card table-marking" data-testid="home-host-card">
                 <h2>HOST GAME</h2>
                 <p>Start a session - Invite your team</p>
-                <button onClick={() => setShowCreator(true)} className="casino-button">
+                <button onClick={() => setShowCreator(true)} className="casino-button" data-testid="home-create-table">
                   CREATE TABLE
                 </button>
               </div>
 
-              <div className="action-card casino-card table-marking">
+              <div className="action-card casino-card table-marking" data-testid="home-join-card">
                 <h2>JOIN GAME</h2>
                 <p>Enter the table PIN to join the action</p>
-                <button onClick={() => setJoining(true)} className="casino-button">
+                <button onClick={() => setJoining(true)} className="casino-button" data-testid="home-join-table">
                   JOIN TABLE
                 </button>
               </div>
             </div>
 
-            <div className="action-card-unified casino-card table-marking action-cards-mobile">
+            <div className="action-card-unified casino-card table-marking action-cards-mobile" data-testid="home-action-cards-mobile">
               <div className="action-option">
                 <h2>HOST GAME</h2>
                 <p>Start a session - Invite your team</p>
-                <button onClick={() => setShowCreator(true)} className="casino-button">
+                <button onClick={() => setShowCreator(true)} className="casino-button" data-testid="home-create-table-mobile">
                   CREATE TABLE
                 </button>
               </div>
               <div className="action-option">
                 <h2>JOIN GAME</h2>
                 <p>Enter the table PIN to join the action</p>
-                <button onClick={() => setJoining(true)} className="casino-button">
+                <button onClick={() => setJoining(true)} className="casino-button" data-testid="home-join-table-mobile">
                   JOIN TABLE
                 </button>
               </div>
@@ -75,6 +75,7 @@ const Home: React.FC = () => {
                 setPin('');
               }}
               className="text-link"
+              data-testid="home-back-to-lobby"
             >
               ← BACK TO LOBBY
             </button>

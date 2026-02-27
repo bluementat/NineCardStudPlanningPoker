@@ -18,7 +18,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onEndSession,
 }) => {
   return (
-    <div className="results-display fade-in">
+    <div className="results-display fade-in" data-testid="results-display">
       <div className="casino-card table-marking">
         <h2 className="results-title">THE REVEAL</h2>
         <div className="votes-container">
@@ -56,11 +56,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         )}
 
         {isHost && (
-          <div className="results-actions">
-            <button onClick={onNewRound} className="casino-button">
+          <div className="results-actions" data-testid="results-actions">
+            <button onClick={onNewRound} className="casino-button" data-testid="results-next-deal-btn">
               NEXT DEAL
             </button>
-            <button onClick={onEndSession} className="casino-button end-session-button">
+            <button onClick={onEndSession} className="casino-button end-session-button" data-testid="results-end-session-btn">
               END SESSION
             </button>
           </div>

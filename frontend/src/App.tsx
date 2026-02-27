@@ -4,7 +4,9 @@ import { Outlet } from 'react-router-dom';
 const App: React.FC = () => {
   return (
     <div id="app">
-      <Outlet />
+      <main data-testid="app-main">
+        <Outlet />
+      </main>
     </div>
   );
 };

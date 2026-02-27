@@ -37,11 +37,15 @@ const PlayingCard: React.FC<PlayingCardProps> = ({
     }
   };
 
+  const cardTestId = value === '∞' ? 'card-infinity' : `card-${value}`;
+  const cardAriaLabel = value === '∞' ? 'Select card infinity' : `Select card ${value}`;
+
   return (
     <div
       role="button"
-      aria-label={`Select card ${value}`}
+      aria-label={cardAriaLabel}
       tabIndex={disabled ? -1 : 0}
+      data-testid={cardTestId}
       className={`playing-card ${isSelected ? 'selected' : ''} ${isFlipped ? 'flipped' : ''} ${isRevealed ? 'revealed' : ''} ${disabled ? 'disabled' : ''}`}
       onClick={handleClick}
       onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isSelected && onSelect) onSelect(value); }}

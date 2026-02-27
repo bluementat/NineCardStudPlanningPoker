@@ -51,10 +51,10 @@ const PinEntry: React.FC<PinEntryProps> = ({ initialPin = '' }) => {
   };
 
   return (
-    <div className="pin-entry fade-in">
+    <div className="pin-entry fade-in" data-testid="pin-entry">
       <div className="casino-card table-marking">
         <h1 className="casino-title">TAKE A SEAT</h1>
-        <form onSubmit={handleSubmit} className="join-form">
+        <form onSubmit={handleSubmit} className="join-form" data-testid="pin-entry-form">
           <div className="form-group">
             <label htmlFor="pin">TABLE PIN</label>
             <input
@@ -67,6 +67,7 @@ const PinEntry: React.FC<PinEntryProps> = ({ initialPin = '' }) => {
               maxLength={6}
               pattern="[0-9]{6}"
               required
+              data-testid="pin-input"
             />
           </div>
           <div className="form-group">
@@ -80,12 +81,13 @@ const PinEntry: React.FC<PinEntryProps> = ({ initialPin = '' }) => {
               placeholder="e.g. Maverick"
               maxLength={30}
               required
+              data-testid="pin-entry-name-input"
             />
           </div>
-          <button type="submit" className="casino-button" disabled={loading || pin.trim().length !== 6}>
+          <button type="submit" className="casino-button" disabled={loading || pin.trim().length !== 6} data-testid="pin-entry-join-btn">
             {loading ? 'SITTING DOWN...' : 'JOIN TABLE'}
           </button>
-          {error && <p className="error-message">{error}</p>}
+          {error && <p className="error-message" data-testid="pin-entry-error">{error}</p>}
         </form>
       </div>
     </div>

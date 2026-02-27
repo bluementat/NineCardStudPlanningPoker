@@ -49,7 +49,7 @@ const Session: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="session-view">
+      <div className="session-view" data-testid="session-loading">
         <div className="loading">
           <p>Loading session...</p>
         </div>
@@ -59,10 +59,10 @@ const Session: React.FC = () => {
 
   if (error) {
     return (
-      <div className="session-view">
+      <div className="session-view" data-testid="session-error">
         <div className="error">
           <p>{error}</p>
-          <button onClick={() => navigate('/')} className="casino-button">
+          <button onClick={() => navigate('/')} className="casino-button" data-testid="session-go-home-btn">
             Go Home
           </button>
         </div>
@@ -71,7 +71,7 @@ const Session: React.FC = () => {
   }
 
   return (
-    <div className="session-view home bg-table">
+    <div className="session-view home bg-table" data-testid="session-view">
       <VotingRoom
         pin={pin!}
         currentParticipantId={participantId}

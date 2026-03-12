@@ -42,7 +42,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           <div className="statistics">
             <div className="stat-item">
               <span className="stat-label">TABLE AVERAGE</span>
-              <span className="stat-value">{statistics.average.toFixed(1)}</span>
+              <span className="stat-value">{statistics.average}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">LOW BET</span>

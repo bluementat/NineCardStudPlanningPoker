@@ -387,7 +387,7 @@ public class SessionsController : ControllerBase
             }).ToList(),
             Statistics = cardValues.Any() ? new StatisticsDto
             {
-                Average = cardValues.Average(),
+                Average = NearestFibonacci(cardValues.Average()),
                 Min = cardValues.Min(),
                 Max = cardValues.Max()
             } : null
@@ -395,4 +395,9 @@ public class SessionsController : ControllerBase
 
         return Ok(results);
     }
+
+    private static readonly int[] FibonacciCards = [0, 1, 2, 3, 5, 8, 13, 21];
+
+    private static int NearestFibonacci(double average) =>
+        FibonacciCards.MinBy(f => Math.Abs(f - average));
 }

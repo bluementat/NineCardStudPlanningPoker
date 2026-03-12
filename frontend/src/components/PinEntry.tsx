@@ -42,6 +42,8 @@ const PinEntry: React.FC<PinEntryProps> = ({ initialPin = '' }) => {
       console.error(`Failed to join session. PIN: ${pin}, Name: ${name}`, err);
       if (err.response?.status === 404) {
         setError('Session not found. Please check the PIN.');
+      } else if (err.response?.status === 409) {
+        setError('That name is already taken. Please choose a different one.');
       } else {
         setError('Failed to join session. Please try again.');
       }

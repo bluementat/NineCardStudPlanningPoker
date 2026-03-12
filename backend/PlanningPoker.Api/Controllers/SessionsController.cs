@@ -129,7 +129,9 @@ public class SessionsController : ControllerBase
             return BadRequest("Invalid PIN format");
         }
 
-        var session = await _context.Sessions.FirstOrDefaultAsync(s => s.PIN == pin);
+        var session = await _context.Sessions
+            .Include(s => s.Participants)
+            .FirstOrDefaultAsync(s => s.PIN == pin);
         if (session == null)
         {
             _logger.LogWarning("Join attempt failed. Session not found for PIN: {PIN}", pin);
@@ -140,6 +142,15 @@ public class SessionsController : ControllerBase
         {
             _logger.LogWarning("Join attempt failed. Session is not active. PIN: {PIN}, Status: {Status}", pin, session.Status);
             return BadRequest("Session is not active");
+        }
+
+        var duplicate = session.Participants.Any(p =>
+            string.Equals(p.Name.Trim(), request.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (duplicate)
+        {
+            _logger.LogWarning("Join attempt failed. Duplicate name in session. PIN: {PIN}, Name: {Name}", pin, request.Name);
+            return Conflict(new { message = "That name is already taken. Please choose a different one." });
         }
 
         _logger.LogInformation("Participant joining session. PIN: {PIN}, Name: {Name}", pin, request.Name);

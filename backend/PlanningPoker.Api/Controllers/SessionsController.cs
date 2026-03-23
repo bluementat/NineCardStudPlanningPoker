@@ -237,6 +237,50 @@ public class SessionsController : ControllerBase
         return Ok(new { Message = "Vote submitted successfully" });
     }
 
+    [HttpDelete("{pin}/votes/{participantId}")]
+    public async Task<ActionResult> ClearVote(string pin, int participantId)
+    {
+        if (!_pinGenerator.IsValidPin(pin))
+        {
+            return BadRequest("Invalid PIN format");
+        }
+
+        var session = await _context.Sessions.FirstOrDefaultAsync(s => s.PIN == pin);
+        if (session == null)
+        {
+            return NotFound("Session not found");
+        }
+
+        var participant = await _context.Participants
+            .FirstOrDefaultAsync(p => p.ParticipantId == participantId && p.SessionId == session.SessionId);
+
+        if (participant == null)
+        {
+            return NotFound("Participant not found");
+        }
+
+        var existingVote = await _context.Votes
+            .Where(v => v.SessionId == session.SessionId && v.ParticipantId == participantId)
+            .OrderByDescending(v => v.VotedAt)
+            .FirstOrDefaultAsync();
+
+        if (existingVote == null)
+        {
+            return NotFound("No vote found for this participant");
+        }
+
+        _context.Votes.Remove(existingVote);
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.Group(pin).SendAsync("VoteRetracted", new
+        {
+            ParticipantId = participant.ParticipantId,
+            ParticipantName = participant.Name
+        });
+
+        return NoContent();
+    }
+
     [HttpPost("{pin}/reveal")]
     public async Task<ActionResult> RevealVotes(string pin)
     {

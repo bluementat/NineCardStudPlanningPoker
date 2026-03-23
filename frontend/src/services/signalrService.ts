@@ -73,6 +73,12 @@ class SignalRService {
     }
   }
 
+  onVoteRetracted(callback: (data: any) => void): void {
+    if (this.connection) {
+      this.connection.on('VoteRetracted', callback)
+    }
+  }
+
   onVotesRevealed(callback: () => void): void {
     if (this.connection) {
       this.connection.on('VotesRevealed', callback)

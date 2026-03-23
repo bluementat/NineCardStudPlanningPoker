@@ -32,13 +32,14 @@ const PlayingCard: React.FC<PlayingCardProps> = ({
   const suitColor = ['♥', '♦'].includes(suitIcon) ? 'red' : 'black';
 
   const handleClick = () => {
-    if (!disabled && !isSelected && onSelect) {
+    if (!disabled && onSelect) {
       onSelect(value);
     }
   };
 
   const cardTestId = value === '∞' ? 'card-infinity' : `card-${value}`;
-  const cardAriaLabel = value === '∞' ? 'Select card infinity' : `Select card ${value}`;
+  const action = isSelected ? 'Deselect' : 'Select';
+  const cardAriaLabel = value === '∞' ? `${action} card infinity` : `${action} card ${value}`;
 
   return (
     <div
@@ -48,7 +49,7 @@ const PlayingCard: React.FC<PlayingCardProps> = ({
       data-testid={cardTestId}
       className={`playing-card ${isSelected ? 'selected' : ''} ${isFlipped ? 'flipped' : ''} ${isRevealed ? 'revealed' : ''} ${disabled ? 'disabled' : ''}`}
       onClick={handleClick}
-      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isSelected && onSelect) onSelect(value); }}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !disabled && onSelect) onSelect(value); }}
     >
       <div className="card-inner">
         <div className={`card-front ${suitColor}`}>

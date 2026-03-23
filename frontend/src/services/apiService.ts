@@ -52,6 +52,10 @@ export const sessionService = {
     })
   },
 
+  async clearVote(pin: string, participantId: number): Promise<void> {
+    await api.delete(`/sessions/${pin}/votes/${participantId}`)
+  },
+
   async revealVotes(pin: string): Promise<void> {
     await api.post(`/sessions/${pin}/reveal`)
   },

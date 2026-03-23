@@ -128,6 +128,14 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
           setVotes((prev) => ({ ...prev, [data.participantId]: data.cardValue }));
         });
 
+        signalrService.onVoteRetracted((data: { participantId: number }) => {
+          setVotes((prev) => {
+            const next = { ...prev };
+            delete next[data.participantId];
+            return next;
+          });
+        });
+
         signalrService.onVotesRevealed(async () => {
           setIsRevealed(true);
           await loadResults();
@@ -162,6 +170,7 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
       signalrService.off('ParticipantJoined');
       signalrService.off('ParticipantLeft');
       signalrService.off('VoteSubmitted');
+      signalrService.off('VoteRetracted');
       signalrService.off('VotesRevealed');
       signalrService.off('NewRoundStarted');
       signalrService.off('SessionEnded');
@@ -171,8 +180,25 @@ const VotingRoom: React.FC<VotingRoomProps> = ({
     };
   }, [pin, currentParticipantId, currentParticipantName, loadSession, loadResults, handleNewRoundStarted]);
 
+  const unselectCard = () => {
+    setSelectedCard('');
+    latestRequestedCardRef.current = null;
+    setVotes((prev) => {
+      const next = { ...prev };
+      delete next[currentParticipantId!];
+      return next;
+    });
+    sessionService.clearVote(pin, currentParticipantId!)
+      .catch((error) => console.error('Error clearing vote:', error));
+  };
+
   const selectCard = (cardValue: string) => {
     if (!currentParticipantId || isRevealed) return;
+
+    if (cardValue === selectedCard) {
+      unselectCard();
+      return;
+    }
 
     setSelectedCard(cardValue);
     latestRequestedCardRef.current = cardValue;
